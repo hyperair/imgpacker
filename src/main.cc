@@ -1,9 +1,9 @@
 #include <gtkmm.h>
-#include <imgpack/imgpackapplication.hh>
+#include <imgpack/application.hh>
 
 int main (int argc, char **argv)
 {
-    ImgPack::ImgPackApplication (argc, argv).run ();
+    ImgPack::Application (argc, argv).run ();
 
     return 0;
 }
