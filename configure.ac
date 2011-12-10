@@ -8,6 +8,7 @@ AC_CONFIG_SRCDIR([src/main.cc])
 AC_CONFIG_HEADERS([config.h])
 
 AC_PROG_CXX
+AM_SILENT_RULES([yes])
 PKG_CHECK_MODULES([GTKMM], [gtkmm-3.0])
 
 AC_CONFIG_FILES([Makefile])
