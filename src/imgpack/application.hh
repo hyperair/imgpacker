@@ -12,8 +12,7 @@ namespace ImgPack
         Application (int &argc, char **&argv);
         virtual ~Application () {}
 
-    protected:
-        virtual void run_impl (); // inherited from Gtk::Main
+        void run ();            // Hide Gtk::Main::run
 
     private:
         MainWindow main_window;

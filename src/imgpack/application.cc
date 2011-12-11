@@ -5,7 +5,7 @@ using ImgPack::Application;
 Application::Application (int &argc, char **&argv) :
     ::Gtk::Main (argc, argv) {}
 
-void Application::run_impl ()
+void Application::run ()
 {
-    main_window.show ();
+    Gtk::Main::run (main_window);
 }
