@@ -26,7 +26,8 @@ namespace
 
         using Gtk::Action;
         actions->add (Action::create ("FileMenuAction", "_File"));
-        actions->add (Action::create ("QuitAction", Gtk::Stock::QUIT));
+        actions->add (Action::create ("QuitAction", Gtk::Stock::QUIT),
+                      sigc::ptr_fun (&Gtk::Main::quit));
         actions->add (Action::create ("HelpMenuAction", "_Help"));
         actions->add (Action::create ("AboutAction", "_About"));
 
