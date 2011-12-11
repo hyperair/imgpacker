@@ -2,7 +2,7 @@
 #define IMGPACK_IMGPACK_APPLICATION_HH
 
 #include <gtkmm.h>
-#include <imgpack/mainwindow.hh>
+#include <imgpack/main-window.hh>
 
 namespace ImgPack
 {
