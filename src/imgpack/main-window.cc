@@ -4,44 +4,12 @@
 using ImgPack::MainWindow;
 using Gtk::UIManager;
 
-namespace
-{
-    void init_uimgr (Glib::RefPtr<Gtk::UIManager> &uimgr)
-    {
-        uimgr->add_ui_from_string (
-            "<ui>"
-            "    <menubar name=\"main_menubar\">"
-            "        <menu name=\"file_menu\" action=\"FileMenuAction\">"
-            "            <menuitem name=\"quit\" action=\"QuitAction\" />"
-            "        </menu>"
-            "        <menu name=\"help_menu\" action=\"HelpMenuAction\">"
-            "            <menuitem name=\"about\" action=\"AboutAction\" />"
-            "        </menu>"
-            "    </menubar>"
-            "    <toolbar name=\"main_toolbar\">"
-            "    </toolbar>"
-            "</ui>"
-            );
-
-        Glib::RefPtr<Gtk::ActionGroup> actions = Gtk::ActionGroup::create ();
-
-        using Gtk::Action;
-        actions->add (Action::create ("FileMenuAction", _("_File")));
-        actions->add (Action::create ("QuitAction", Gtk::Stock::QUIT),
-                      sigc::ptr_fun (&Gtk::Main::quit));
-        actions->add (Action::create ("HelpMenuAction", _("_Help")));
-        actions->add (Action::create ("AboutAction", _("_About")));
-
-        uimgr->insert_action_group (actions);
-    }
-}
-
 MainWindow::MainWindow () :
     uimgr (UIManager::create ())
 {
     add (main_vbox);
 
-    init_uimgr (uimgr);
+    init_uimgr ();
     main_vbox.add (*uimgr->get_widget ("/main_menubar"));
     main_vbox.add (*uimgr->get_widget ("/main_toolbar"));
 
@@ -54,4 +22,46 @@ MainWindow::MainWindow () :
 
 MainWindow::~MainWindow ()
 {
+}
+
+void MainWindow::init_uimgr ()
+{
+    uimgr->add_ui_from_string (
+        "<ui>"
+        "    <menubar name=\"main_menubar\">"
+        "        <menu action=\"FileMenuAction\">"
+        "            <menuitem action=\"AddAction\" />"
+        "            <separator />"
+        "            <menuitem action=\"QuitAction\" />"
+        "        </menu>"
+        "        <menu action=\"HelpMenuAction\">"
+        "            <menuitem action=\"AboutAction\" />"
+        "        </menu>"
+        "    </menubar>"
+        "    <toolbar name=\"main_toolbar\">"
+        "        <toolitem action=\"AddAction\" />"
+        "    </toolbar>"
+        "</ui>"
+        );
+
+    Glib::RefPtr<Gtk::ActionGroup> actions = Gtk::ActionGroup::create ();
+
+    using Gtk::Action;
+    actions->add (Action::create ("FileMenuAction", _("_File")));
+    actions->add (Action::create ("HelpMenuAction", _("_Help")));
+
+    actions->add (Action::create ("AboutAction", _("_About")));
+    actions->add (Action::create ("AddAction", Gtk::Stock::ADD,
+                                  _("Add more images")),
+                  sigc::mem_fun (*this, &MainWindow::on_add));
+    actions->add (Action::create ("QuitAction", Gtk::Stock::QUIT),
+                  sigc::ptr_fun (&Gtk::Main::quit));
+
+    uimgr->insert_action_group (actions);
+}
+
+// callbacks
+void MainWindow::on_add ()
+{
+    // TODO: Show add dialog here
 }

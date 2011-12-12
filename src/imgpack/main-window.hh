@@ -13,11 +13,16 @@ namespace ImgPack
 
     private:
         Glib::RefPtr<Gtk::UIManager> uimgr;
-        Gtk::VBox                      main_vbox;
-        Gtk::HPaned                    main_pane;
+        void                         init_uimgr ();
 
-        Gtk::IconView                  image_list;
-        Gtk::DrawingArea               preview;
+        Gtk::VBox                    main_vbox;
+        Gtk::HPaned                  main_pane;
+
+        Gtk::IconView                image_list;
+        Gtk::DrawingArea             preview;
+
+        // callbacks
+        void on_add ();
     };
 }
 
