@@ -11,3 +11,7 @@ missing
 stamp-h1
 *.o
 /imgpacker
+/po/Makefile*
+/po/POTFILES
+/po/*.pot
+/po/stamp-it
