@@ -1,3 +1,4 @@
+#include <glibmm/i18n.h>
 #include <imgpack/main-window.hh>
 
 using ImgPack::MainWindow;
@@ -25,11 +26,11 @@ namespace
         Glib::RefPtr<Gtk::ActionGroup> actions = Gtk::ActionGroup::create ();
 
         using Gtk::Action;
-        actions->add (Action::create ("FileMenuAction", "_File"));
+        actions->add (Action::create ("FileMenuAction", _("_File")));
         actions->add (Action::create ("QuitAction", Gtk::Stock::QUIT),
                       sigc::ptr_fun (&Gtk::Main::quit));
-        actions->add (Action::create ("HelpMenuAction", "_Help"));
-        actions->add (Action::create ("AboutAction", "_About"));
+        actions->add (Action::create ("HelpMenuAction", _("_Help")));
+        actions->add (Action::create ("AboutAction", _("_About")));
 
         uimgr->insert_action_group (actions);
     }
