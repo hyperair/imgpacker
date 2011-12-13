@@ -5,13 +5,16 @@
 
 namespace ImgPack
 {
+    class Application;
+
     class MainWindow : public Gtk::Window
     {
     public:
-        MainWindow ();
+        MainWindow (Application &app);
         ~MainWindow ();
 
     private:
+        Application                 &app;
         Glib::RefPtr<Gtk::UIManager> uimgr;
         void                         init_uimgr ();
 

@@ -14,8 +14,11 @@ namespace ImgPack
 
         void run ();            // Hide Gtk::Main::run
 
+        void show_about ();
+
     private:
         MainWindow main_window;
+        Gtk::AboutDialog about_dialog;
     };
 }
 

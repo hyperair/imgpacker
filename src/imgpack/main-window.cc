@@ -1,10 +1,12 @@
 #include <glibmm/i18n.h>
 #include <imgpack/main-window.hh>
+#include <imgpack/application.hh>
 
 using ImgPack::MainWindow;
 using Gtk::UIManager;
 
-MainWindow::MainWindow () :
+MainWindow::MainWindow (Application &app) :
+    app (app),
     uimgr (UIManager::create ())
 {
     add (main_vbox);
@@ -50,7 +52,8 @@ void MainWindow::init_uimgr ()
     actions->add (Action::create ("FileMenuAction", _("_File")));
     actions->add (Action::create ("HelpMenuAction", _("_Help")));
 
-    actions->add (Action::create ("AboutAction", _("_About")));
+    actions->add (Action::create ("AboutAction", _("_About")),
+                  sigc::mem_fun (app, &Application::show_about));
     actions->add (Action::create ("AddAction", Gtk::Stock::ADD,
                                   _("Add more images")),
                   sigc::mem_fun (*this, &MainWindow::on_add));
