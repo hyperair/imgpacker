@@ -55,7 +55,7 @@ void MainWindow::init_uimgr ()
     actions->add (Action::create ("AboutAction", _("_About")),
                   sigc::mem_fun (app, &Application::show_about));
     actions->add (Action::create ("AddAction", Gtk::Stock::ADD,
-                                  _("Add more images")),
+                                  _("Add images")),
                   sigc::mem_fun (*this, &MainWindow::on_add));
     actions->add (Action::create ("QuitAction", Gtk::Stock::QUIT),
                   sigc::ptr_fun (&Gtk::Main::quit));
