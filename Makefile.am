@@ -6,6 +6,7 @@ imgpacker_SOURCES =				\
 	src/imgpack/main-window.hh		\
 	src/main.cc
 imgpacker_CXXFLAGS =						\
+	-std=c++0x						\
 	$(GTKMM_CFLAGS)						\
 	-I$(top_srcdir)/src					\
 	-DPROGRAMNAME_LOCALEDIR="\"$(PROGRAMNAME_LOCALEDIR)\""
