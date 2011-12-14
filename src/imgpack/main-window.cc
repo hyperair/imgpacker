@@ -5,9 +5,32 @@
 using ImgPack::MainWindow;
 using Gtk::UIManager;
 
+namespace {
+    class IconViewColumns : public Gtk::TreeModel::ColumnRecord
+    {
+    public:
+        Gtk::TreeModelColumn<Glib::ustring>             filename;
+        Gtk::TreeModelColumn<Glib::RefPtr<Gdk::Pixbuf>> thumbnail;
+
+        IconViewColumns ()
+        {
+            add (filename);
+            add (thumbnail);
+        }
+
+        static IconViewColumns &instance ()
+        {
+            static IconViewColumns instance;
+            return instance;
+        }
+    };
+}
+
 MainWindow::MainWindow (Application &app) :
     app (app),
-    uimgr (UIManager::create ())
+    uimgr (UIManager::create ()),
+    image_list_model (Gtk::ListStore::create (IconViewColumns::instance ())),
+    image_list_view (image_list_model)
 {
     add (main_vbox);
 
@@ -18,7 +41,7 @@ MainWindow::MainWindow (Application &app) :
                           Gtk::PACK_SHRINK);
 
     main_vbox.pack_start (main_pane, Gtk::PACK_EXPAND_WIDGET);
-    main_pane.pack1 (image_list, Gtk::SHRINK | Gtk::FILL);
+    main_pane.pack1 (image_list_view, Gtk::SHRINK | Gtk::FILL);
     main_pane.pack2 (preview, Gtk::EXPAND | Gtk::FILL);
 
     main_vbox.show_all ();

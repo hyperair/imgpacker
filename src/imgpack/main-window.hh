@@ -21,7 +21,8 @@ namespace ImgPack
         Gtk::VBox                    main_vbox;
         Gtk::HPaned                  main_pane;
 
-        Gtk::IconView                image_list;
+        Glib::RefPtr<Gtk::ListStore> image_list_model;
+        Gtk::IconView                image_list_view;
         Gtk::DrawingArea             preview;
 
         // callbacks
