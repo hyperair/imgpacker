@@ -12,12 +12,14 @@ MainWindow::MainWindow (Application &app) :
     add (main_vbox);
 
     init_uimgr ();
-    main_vbox.add (*uimgr->get_widget ("/main_menubar"));
-    main_vbox.add (*uimgr->get_widget ("/main_toolbar"));
+    main_vbox.pack_start (*uimgr->get_widget ("/main_menubar"),
+                          Gtk::PACK_SHRINK);
+    main_vbox.pack_start (*uimgr->get_widget ("/main_toolbar"),
+                          Gtk::PACK_SHRINK);
 
-    main_vbox.add (main_pane);
-    main_pane.add (image_list);
-    main_pane.add (preview);
+    main_vbox.pack_start (main_pane, Gtk::PACK_EXPAND_WIDGET);
+    main_pane.pack1 (image_list, Gtk::SHRINK | Gtk::FILL);
+    main_pane.pack2 (preview, Gtk::EXPAND | Gtk::FILL);
 
     main_vbox.show_all ();
 }
