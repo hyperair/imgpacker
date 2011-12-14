@@ -108,6 +108,7 @@ void MainWindow::on_add ()
     dialog.set_default_response (ADD);
     dialog.set_select_multiple (true);
 
+    // Setup and add filters
     Glib::RefPtr<Gtk::FileFilter> image_filter = Gtk::FileFilter::create ();
     image_filter->add_pixbuf_formats ();
     image_filter->set_name (_("All Images"));
@@ -118,9 +119,18 @@ void MainWindow::on_add ()
     all_filter->set_name (_("All Files"));
     dialog.add_filter (all_filter);
 
+    // Show dialog and process response
     if (dialog.run () == ADD) {
+        IconViewColumns &cols = IconViewColumns::instance ();
+
+        // TODO: Make this asynchronous -- it hangs the UI
         for (Glib::RefPtr<Gio::File> file : dialog.get_files ()) {
-            // TODO: Add to iconview
+            auto iter = image_list_model->append ();
+
+            iter->set_value (cols.filename,
+                             Glib::ustring (file->get_basename ()));
+            iter->set_value (cols.thumbnail,
+                             Gdk::Pixbuf::create_from_stream (file->read ()));
         }
     }
 }
