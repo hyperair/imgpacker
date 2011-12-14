@@ -22,6 +22,8 @@ MainWindow::MainWindow (Application &app) :
     main_pane.pack2 (preview, Gtk::EXPAND | Gtk::FILL);
 
     main_vbox.show_all ();
+
+    set_default_size (640, 480);
 }
 
 MainWindow::~MainWindow ()
