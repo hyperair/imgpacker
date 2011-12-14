@@ -93,5 +93,31 @@ void MainWindow::init_uimgr ()
 // callbacks
 void MainWindow::on_add ()
 {
-    // TODO: Show add dialog here
+    enum {
+        ADD,
+        CANCEL
+    };
+
+    Gtk::FileChooserDialog dialog (*this, _("Select image(s)"));
+    dialog.add_button (Gtk::Stock::CANCEL, CANCEL);
+    dialog.add_button (Gtk::Stock::OPEN, ADD);
+
+    dialog.set_default_response (ADD);
+    dialog.set_select_multiple (true);
+
+    Glib::RefPtr<Gtk::FileFilter> image_filter = Gtk::FileFilter::create ();
+    image_filter->add_pixbuf_formats ();
+    image_filter->set_name (_("All Images"));
+    dialog.add_filter (image_filter);
+
+    Glib::RefPtr<Gtk::FileFilter> all_filter = Gtk::FileFilter::create ();
+    all_filter->add_pattern ("*");
+    all_filter->set_name (_("All Files"));
+    dialog.add_filter (all_filter);
+
+    if (dialog.run () == ADD) {
+        for (Glib::RefPtr<Gio::File> file : dialog.get_files ()) {
+            // TODO: Add to iconview
+        }
+    }
 }
