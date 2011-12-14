@@ -46,6 +46,9 @@ MainWindow::MainWindow (Application &app) :
 
     main_vbox.show_all ();
 
+    image_list_view.set_pixbuf_column (IconViewColumns::instance ().thumbnail);
+    image_list_view.set_text_column (IconViewColumns::instance ().filename);
+
     set_default_size (640, 480);
 }
 
