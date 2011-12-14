@@ -4,13 +4,6 @@
 
 using ImgPack::Application;
 
-namespace {
-    void hide_about (Gtk::AboutDialog *dlg)
-    {
-        dlg->hide ();
-    }
-}
-
 Application::Application (int &argc, char **&argv) :
     main_window (*this),
     ::Gtk::Main (argc, argv)
@@ -22,8 +15,7 @@ Application::Application (int &argc, char **&argv) :
     about_dialog.set_license_type (Gtk::LICENSE_GPL_3_0);
     about_dialog.set_authors ({"Chow Loong Jin <hyperair@ubuntu.com>"});
     about_dialog.signal_response ()
-        .connect (sigc::hide (sigc::bind (sigc::ptr_fun (&hide_about),
-                                          &about_dialog)));
+        .connect ([&about_dialog](int) {about_dialog.hide ();});
 }
 
 void Application::run ()
