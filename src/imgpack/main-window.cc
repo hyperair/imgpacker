@@ -41,7 +41,10 @@ MainWindow::MainWindow (Application &app) :
                           Gtk::PACK_SHRINK);
 
     main_vbox.pack_start (main_pane, Gtk::PACK_EXPAND_WIDGET);
-    main_pane.pack1 (image_list_view, Gtk::SHRINK | Gtk::FILL);
+
+    Gtk::ScrolledWindow *scrolled = Gtk::manage (new Gtk::ScrolledWindow ());
+    scrolled->add (image_list_view);
+    main_pane.pack1 (*scrolled, Gtk::SHRINK | Gtk::FILL);
     main_pane.pack2 (preview, Gtk::EXPAND | Gtk::FILL);
 
     main_vbox.show_all ();
