@@ -16,9 +16,12 @@ namespace ImgPack
 
         void show_about ();
 
+        Glib::ThreadPool &thread_pool () {return thread_pool_;}
+
     private:
-        MainWindow main_window;
+        MainWindow       main_window;
         Gtk::AboutDialog about_dialog;
+        Glib::ThreadPool thread_pool_;
     };
 }
 

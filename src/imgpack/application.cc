@@ -1,3 +1,4 @@
+#include <unistd.h>
 #include <glibmm/i18n.h>
 #include <imgpack/application.hh>
 #include <config.h>
@@ -16,6 +17,8 @@ Application::Application (int &argc, char **&argv) :
     about_dialog.set_authors ({"Chow Loong Jin <hyperair@ubuntu.com>"});
     about_dialog.signal_response ()
         .connect ([&about_dialog](int) {about_dialog.hide ();});
+
+    thread_pool_.set_max_threads (sysconf (_SC_NPROCESSORS_ONLN));
 }
 
 void Application::run ()
