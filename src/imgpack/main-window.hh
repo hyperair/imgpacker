@@ -2,6 +2,7 @@
 #define IMGPACK_MAIN_WINDOW_HH
 
 #include <gtkmm.h>
+#include <imgpack/image-loader.hh>
 
 namespace ImgPack
 {
@@ -25,8 +26,12 @@ namespace ImgPack
         Gtk::IconView                image_list_view;
         Gtk::DrawingArea             preview;
 
+        ImageLoader                  image_loader;
+
         // callbacks
         void on_add ();
+        void on_add_finish (Glib::RefPtr<Gio::File> file,
+                            Glib::RefPtr<Gdk::Pixbuf> pixbuf);
     };
 }
 

@@ -1,3 +1,4 @@
+#include <memory>
 #include <glibmm/i18n.h>
 #include <imgpack/main-window.hh>
 #include <imgpack/application.hh>
@@ -17,20 +18,25 @@ namespace {
             add (filename);
             add (thumbnail);
         }
-
-        static IconViewColumns &instance ()
-        {
-            static IconViewColumns instance;
-            return instance;
-        }
     };
+
+    // Get singleton instance of IconViewColumns
+    IconViewColumns &cols ()
+    {
+        static IconViewColumns instance;
+
+        return instance;
+    }
 }
 
 MainWindow::MainWindow (Application &app) :
     app (app),
     uimgr (UIManager::create ()),
-    image_list_model (Gtk::ListStore::create (IconViewColumns::instance ())),
-    image_list_view (image_list_model)
+
+    image_list_model (Gtk::ListStore::create (cols ())),
+    image_list_view (image_list_model),
+
+    image_loader (sigc::mem_fun (*this, &MainWindow::on_add_finish))
 {
     add (main_vbox);
 
@@ -49,8 +55,8 @@ MainWindow::MainWindow (Application &app) :
 
     main_vbox.show_all ();
 
-    image_list_view.set_pixbuf_column (IconViewColumns::instance ().thumbnail);
-    image_list_view.set_text_column (IconViewColumns::instance ().filename);
+    image_list_view.set_pixbuf_column (cols ().thumbnail);
+    image_list_view.set_text_column (cols ().filename);
 
     set_default_size (640, 480);
 }
@@ -123,17 +129,16 @@ void MainWindow::on_add ()
     dialog.add_filter (all_filter);
 
     // Show dialog and process response
-    if (dialog.run () == ADD) {
-        IconViewColumns &cols = IconViewColumns::instance ();
+    if (dialog.run () == ADD)
+        for (Glib::RefPtr<Gio::File> file : dialog.get_files ())
+            image_loader.push (file);
+}
 
-        // TODO: Make this asynchronous -- it hangs the UI
-        for (Glib::RefPtr<Gio::File> file : dialog.get_files ()) {
-            auto iter = image_list_model->append ();
+void MainWindow::on_add_finish (Glib::RefPtr<Gio::File> file,
+                                Glib::RefPtr<Gdk::Pixbuf> pixbuf)
+{
+    auto iter = image_list_model->append ();
 
-            iter->set_value (cols.filename,
-                             Glib::ustring (file->get_basename ()));
-            iter->set_value (cols.thumbnail,
-                             Gdk::Pixbuf::create_from_stream (file->read ()));
-        }
-    }
+    iter->set_value (cols ().filename, Glib::ustring (file->get_basename ()));
+    iter->set_value (cols ().thumbnail, pixbuf);
 }
