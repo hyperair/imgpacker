@@ -10,6 +10,7 @@ imgpacker_SOURCES =				\
 imgpacker_CXXFLAGS =						\
 	-std=c++0x						\
 	$(GTKMM_CFLAGS)						\
+	$(NIHPP_CFLAGS)						\
 	-I$(top_srcdir)/src					\
 	-DPROGRAMNAME_LOCALEDIR="\"$(PROGRAMNAME_LOCALEDIR)\""
 imgpacker_LDADD = $(GTKMM_LIBS)
