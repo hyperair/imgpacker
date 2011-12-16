@@ -3,6 +3,7 @@
 
 #include <gtkmm.h>
 #include <imgpack/image-loader.hh>
+#include <imgpack/image-list.hh>
 
 namespace ImgPack
 {
@@ -22,16 +23,13 @@ namespace ImgPack
         Gtk::VBox                    main_vbox;
         Gtk::HPaned                  main_pane;
 
-        Glib::RefPtr<Gtk::ListStore> image_list_model;
-        Gtk::IconView                image_list_view;
+        ImageList                    image_list;
         Gtk::DrawingArea             preview;
 
         ImageLoader                  image_loader;
 
         // callbacks
         void on_add ();
-        void on_add_finish (Glib::RefPtr<Gio::File> file,
-                            Glib::RefPtr<Gdk::Pixbuf> pixbuf);
     };
 }
 

@@ -6,37 +6,11 @@
 using ImgPack::MainWindow;
 using Gtk::UIManager;
 
-namespace {
-    class IconViewColumns : public Gtk::TreeModel::ColumnRecord
-    {
-    public:
-        Gtk::TreeModelColumn<Glib::ustring>             filename;
-        Gtk::TreeModelColumn<Glib::RefPtr<Gdk::Pixbuf>> thumbnail;
-
-        IconViewColumns ()
-        {
-            add (filename);
-            add (thumbnail);
-        }
-    };
-
-    // Get singleton instance of IconViewColumns
-    IconViewColumns &cols ()
-    {
-        static IconViewColumns instance;
-
-        return instance;
-    }
-}
-
 MainWindow::MainWindow (Application &app) :
     app (app),
-    uimgr (UIManager::create ()),
+    uimgr (UIManager::create ())
 
-    image_list_model (Gtk::ListStore::create (cols ())),
-    image_list_view (image_list_model),
-
-    image_loader (sigc::mem_fun (*this, &MainWindow::on_add_finish))
+    // image_loader (sigc::mem_fun (*this, &MainWindow::on_add_finish))
 {
     add (main_vbox);
 
@@ -49,14 +23,11 @@ MainWindow::MainWindow (Application &app) :
     main_vbox.pack_start (main_pane, Gtk::PACK_EXPAND_WIDGET);
 
     Gtk::ScrolledWindow *scrolled = Gtk::manage (new Gtk::ScrolledWindow ());
-    scrolled->add (image_list_view);
+    scrolled->add (image_list);
     main_pane.pack1 (*scrolled, Gtk::SHRINK | Gtk::FILL);
     main_pane.pack2 (preview, Gtk::EXPAND | Gtk::FILL);
 
     main_vbox.show_all ();
-
-    image_list_view.set_pixbuf_column (cols ().thumbnail);
-    image_list_view.set_text_column (cols ().filename);
 
     set_default_size (640, 480);
 }
@@ -131,14 +102,5 @@ void MainWindow::on_add ()
     // Show dialog and process response
     if (dialog.run () == ADD)
         for (Glib::RefPtr<Gio::File> file : dialog.get_files ())
-            image_loader.push (file);
-}
-
-void MainWindow::on_add_finish (Glib::RefPtr<Gio::File> file,
-                                Glib::RefPtr<Gdk::Pixbuf> pixbuf)
-{
-    auto iter = image_list_model->append ();
-
-    iter->set_value (cols ().filename, Glib::ustring (file->get_basename ()));
-    iter->set_value (cols ().thumbnail, pixbuf);
+            image_list.add_image (file);
 }
