@@ -8,9 +8,9 @@ using Gtk::UIManager;
 
 MainWindow::MainWindow (Application &app) :
     app (app),
-    uimgr (UIManager::create ())
+    uimgr (UIManager::create ()),
 
-    // image_loader (sigc::mem_fun (*this, &MainWindow::on_add_finish))
+    image_list (app)
 {
     add (main_vbox);
 
@@ -102,5 +102,5 @@ void MainWindow::on_add ()
     // Show dialog and process response
     if (dialog.run () == ADD)
         for (Glib::RefPtr<Gio::File> file : dialog.get_files ())
-            image_list.add_image (file);
+            image_list.add_image_async (file);
 }
