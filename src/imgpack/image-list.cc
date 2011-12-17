@@ -3,7 +3,7 @@
 
 namespace {
     class IconViewColumns : public Gtk::TreeModel::ColumnRecord,
-                            public nih::Singleton<IconViewColumns>
+                            public nihpp::Singleton<IconViewColumns>
     {
     public:
         Gtk::TreeModelColumn<Glib::RefPtr<Gio::File>>   file;
