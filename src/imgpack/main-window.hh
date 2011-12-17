@@ -2,7 +2,6 @@
 #define IMGPACK_MAIN_WINDOW_HH
 
 #include <gtkmm.h>
-#include <imgpack/image-loader.hh>
 #include <imgpack/image-list.hh>
 
 namespace ImgPack
@@ -25,8 +24,6 @@ namespace ImgPack
 
         ImageList                    image_list;
         Gtk::DrawingArea             preview;
-
-        ImageLoader                  image_loader;
 
         // callbacks
         void on_add ();

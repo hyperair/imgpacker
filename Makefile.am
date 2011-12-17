@@ -6,8 +6,6 @@ imgpacker_SOURCES =				\
 	src/imgpack/main-window.hh		\
 	src/imgpack/image-list.cc		\
 	src/imgpack/image-list.hh		\
-	src/imgpack/image-loader.cc		\
-	src/imgpack/image-loader.hh		\
 	src/main.cc
 imgpacker_CXXFLAGS =						\
 	-std=c++0x						\
