@@ -128,11 +128,15 @@ void ImageList::add_image_async (const Glib::RefPtr<Gio::File> &file)
 void ImageList::remove_selected ()
 {
     std::vector<Gtk::TreePath> paths = get_selected_items ();
-    std::vector<Gtk::TreeIter> iters (paths.size ());
+    std::vector<Gtk::TreeIter> iters;
+
+    iters.reserve (paths.size ());
 
     // This is needed because TreePaths get invalidated by removals
     for (Gtk::TreePath &i : paths)
         iters.push_back (model->get_iter (i));
+
+    g_assert (paths.size () == iters.size ());
 
     for (Gtk::TreeIter &i : iters)
         model->erase (i);
