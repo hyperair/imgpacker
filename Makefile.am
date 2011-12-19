@@ -11,6 +11,7 @@ imgpacker_SOURCES =				\
 	src/main.cc
 imgpacker_CXXFLAGS =						\
 	-std=c++0x						\
+	$(WARN_CXXFLAGS)					\
 	$(GTKMM_CFLAGS)						\
 	$(NIHPP_CFLAGS)						\
 	-I$(top_srcdir)/src					\
@@ -18,6 +19,10 @@ imgpacker_CXXFLAGS =						\
 imgpacker_LDADD = $(GTKMM_LIBS)
 
 SUBDIRS = po
+
+if ENABLE_WARNINGS
+WARN_CXXFLAGS = -Wall -Wextra -Werror -pedantic
+endif
 
 run: imgpacker
 	$(builddir)/imgpacker

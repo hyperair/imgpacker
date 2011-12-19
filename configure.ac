@@ -25,6 +25,12 @@ PROGRAMNAME_LOCALEDIR=[${datadir}/locale]
 AC_SUBST(PROGRAMNAME_LOCALEDIR)
 dnl end i18n bits
 
+AC_ARG_ENABLE([warnings],
+              [AS_HELP_STRING([--enable-warnings=yes], [Enable extra warning flags])],,
+              [enable_warnings=yes])
+
+AM_CONDITIONAL([ENABLE_WARNINGS], [test "$enable_warnings" = "yes"])
+
 AC_CONFIG_FILES([
     Makefile
     po/Makefile.in
