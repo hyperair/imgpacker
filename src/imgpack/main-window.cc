@@ -92,6 +92,7 @@ void MainWindow::on_add ()
 
     dialog.set_default_response (ADD);
     dialog.set_select_multiple (true);
+    dialog.set_local_only (false);
 
     // Setup and add filters
     Glib::RefPtr<Gtk::FileFilter> image_filter = Gtk::FileFilter::create ();
