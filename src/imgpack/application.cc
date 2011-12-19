@@ -8,8 +8,10 @@
 using ImgPack::Application;
 
 Application::Application (int &argc, char **&argv) :
+    ::Gtk::Main (argc, argv),
+
     main_window (*this),
-    ::Gtk::Main (argc, argv)
+    thread_pool_ (sysconf (_SC_NPROCESSORS_ONLN))
 {
     Glib::set_application_name (_("ImgPacker Collage Creator"));
 
@@ -20,10 +22,8 @@ Application::Application (int &argc, char **&argv) :
     about_dialog.signal_response ()
         .connect ([&about_dialog](int) {about_dialog.hide ();});
 
-    thread_pool_.set_max_threads (sysconf (_SC_NPROCESSORS_ONLN));
-
     LOG(info) << "Initialized thread pool with max threads: "
-              << sysconf (_SC_NPROCESSORS_ONLN);
+              << thread_pool ().get_max_threads ();
 }
 
 void Application::run ()
