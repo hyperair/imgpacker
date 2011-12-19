@@ -51,6 +51,8 @@ ImageList::ImageList (Application &app) :
     set_pixbuf_column (cols ().thumbnail);
     set_text_column (cols ().filename);
 
+    set_selection_mode (Gtk::SELECTION_MULTIPLE);
+
     image_ready.connect (sigc::mem_fun (*this, &ImageList::on_image_ready));
 }
 
