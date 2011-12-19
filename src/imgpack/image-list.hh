@@ -2,6 +2,7 @@
 #define IMGPACK_IMAGE_LIST_HH
 
 #include <memory>
+#include <future>
 #include <gtkmm.h>
 
 namespace ImgPack
@@ -26,8 +27,12 @@ namespace ImgPack
         Glib::RefPtr<Gtk::ListStore> model;
         Application &app;
 
-        class LoaderTask;
-        std::list<std::shared_ptr<LoaderTask>> load_queue;
+        typedef Glib::RefPtr<Gio::File>            file_t;
+        typedef Glib::RefPtr<Gdk::Pixbuf>          pixbuf_t;
+        typedef std::shared_future<pixbuf_t>       future_pixbuf_t;
+        typedef std::pair<file_t, future_pixbuf_t> load_data_t;
+
+        std::list<load_data_t> load_queue;
 
         Glib::Dispatcher image_ready;
 

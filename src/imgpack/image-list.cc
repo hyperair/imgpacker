@@ -1,3 +1,5 @@
+#include <iostream>
+
 #include <nihpp/singleton.hh>
 #include <nihpp/sharedptrcreator.hh>
 
@@ -34,62 +36,9 @@ namespace {
         return Gdk::Pixbuf::create_from_stream_at_scale (file->read (),
                                                          250, -1, true);
     }
-
-    template <typename Ptr>
-    class TaskWrapper
-    {
-    public:
-        TaskWrapper (const Ptr &ptr) : ptr (ptr) {}
-
-        template <typename... Args>
-        auto operator() (Args&&... args)
-            -> decltype ((*Ptr ()) (std::forward<Args> (args)...))
-        {
-            return (*ptr) (std::forward<Args> (args)...);
-        }
-
-    private:
-        Ptr ptr;
-    };
 }
 
 using ImgPack::ImageList;
-
-
-struct ImageList::LoaderTask :
-    public nihpp::SharedPtrCreator<ImageList::LoaderTask>
-{
-    LoaderTask (const Glib::RefPtr<Gio::File> &file,
-                Glib::Dispatcher &finish);
-    void operator() ();         // Run by threadpool
-
-    explicit operator bool ();
-
-    Glib::RefPtr<Gio::File> file;
-    Glib::RefPtr<Gdk::Pixbuf> pixbuf;
-
-    Glib::Dispatcher &finish;
-};
-
-ImageList::LoaderTask::LoaderTask (const Glib::RefPtr<Gio::File> &file,
-                                   Glib::Dispatcher &finish) :
-    file (file),
-    pixbuf (nullptr),
-
-    finish (finish)
-{
-}
-
-void ImageList::LoaderTask::operator() ()
-{
-    pixbuf = load_pixbuf (file);
-    finish ();
-}
-
-ImageList::LoaderTask::operator bool ()
-{
-    return pixbuf;
-}
 
 
 ImageList::ImageList (Application &app) :
@@ -119,10 +68,11 @@ void ImageList::add_image (const Glib::RefPtr<Gio::File> &file,
 
 void ImageList::add_image_async (const Glib::RefPtr<Gio::File> &file)
 {
-    LoaderTask::Ptr loader_task = LoaderTask::create (file, image_ready);
+    load_data_t data = {file,
+                        app.async_task (std::bind (&load_pixbuf, file),
+                                        image_ready)};
 
-    load_queue.push_back (loader_task);
-    app.thread_pool ().push (TaskWrapper<LoaderTask::Ptr> (loader_task));
+    load_queue.push_back (data);
 }
 
 void ImageList::remove_selected ()
@@ -144,10 +94,17 @@ void ImageList::remove_selected ()
 
 void ImageList::on_image_ready ()
 {
-    while (!load_queue.empty () && *load_queue.front ()) {
-        LoaderTask::Ptr task = load_queue.front ();
-        add_image (task->file, task->pixbuf);
-
+    while (!load_queue.empty () &&
+           load_queue.front ().second.wait_for (std::chrono::nanoseconds (0))) {
+        load_data_t data = load_queue.front ();
         load_queue.pop_front ();
+
+        try {
+            add_image (data.first, data.second.get ());
+
+        } catch (Glib::Exception &e) {
+            std::cerr << "Exception caught: " << e.what () << std::endl;
+            // TODO: show error dialog
+        }
     }
 }
