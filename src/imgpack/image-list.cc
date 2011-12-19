@@ -33,6 +33,7 @@ namespace {
 
     Glib::RefPtr<Gdk::Pixbuf> load_pixbuf (const Glib::RefPtr<Gio::File> file)
     {
+        LOG(info) << "Loading image from " << file->get_uri ();
         return Gdk::Pixbuf::create_from_stream_at_scale (file->read (),
                                                          250, -1, true);
     }
@@ -64,6 +65,8 @@ void ImageList::add_image (const Glib::RefPtr<Gio::File> &file,
     iter->set_value (cols ().uri, Glib::ustring (file->get_uri ()));
     iter->set_value (cols ().filename, Glib::ustring (file->get_basename ()));
     iter->set_value (cols ().thumbnail, pixbuf);
+
+    LOG(info) << "Added image from " << file->get_uri ();
 }
 
 void ImageList::add_image_async (const Glib::RefPtr<Gio::File> &file)
@@ -103,7 +106,10 @@ void ImageList::on_image_ready ()
             add_image (data.first, data.second.get ());
 
         } catch (Glib::Exception &e) {
-            std::cerr << "Exception caught: " << e.what () << std::endl;
+            LOG(warning) << "Could not open image "
+                         << data.first->get_uri ()
+                         << ": Caught Glib::Exception ["
+                         << e.what () << "]";
             // TODO: show error dialog
         }
     }

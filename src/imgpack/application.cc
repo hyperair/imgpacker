@@ -1,6 +1,8 @@
 #include <unistd.h>
 #include <glibmm/i18n.h>
+
 #include <imgpack/application.hh>
+#include <imgpack/logger.hh>
 #include <config.h>
 
 using ImgPack::Application;
@@ -19,6 +21,9 @@ Application::Application (int &argc, char **&argv) :
         .connect ([&about_dialog](int) {about_dialog.hide ();});
 
     thread_pool_.set_max_threads (sysconf (_SC_NPROCESSORS_ONLN));
+
+    LOG(info) << "Initialized thread pool with max threads: "
+              << sysconf (_SC_NPROCESSORS_ONLN);
 }
 
 void Application::run ()

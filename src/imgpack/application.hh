@@ -6,6 +6,7 @@
 
 #include <gtkmm.h>
 #include <imgpack/main-window.hh>
+#include <imgpack/logger.hh>
 
 namespace ImgPack
 {
