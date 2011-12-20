@@ -45,6 +45,8 @@ void MainWindow::init_uimgr ()
         "            <menuitem action=\"AddAction\" />"
         "            <menuitem action=\"RemoveAction\" />"
         "            <separator />"
+        "            <menuitem action=\"ExecAction\" />"
+        "            <separator />"
         "            <menuitem action=\"QuitAction\" />"
         "        </menu>"
         "        <menu action=\"HelpMenuAction\">"
@@ -54,6 +56,8 @@ void MainWindow::init_uimgr ()
         "    <toolbar name=\"main_toolbar\">"
         "        <toolitem action=\"AddAction\" />"
         "        <toolitem action=\"RemoveAction\" />"
+        "        <separator />"
+        "        <toolitem action=\"ExecAction\" />"
         "    </toolbar>"
         "</ui>"
         );
@@ -66,12 +70,17 @@ void MainWindow::init_uimgr ()
 
     actions->add (Action::create ("AboutAction", _("_About")),
                   sigc::mem_fun (app, &Application::show_about));
+
     actions->add (Action::create ("AddAction", Gtk::Stock::ADD,
                                   _("Add images")),
                   sigc::mem_fun (*this, &MainWindow::on_add));
     actions->add (Action::create ("RemoveAction", Gtk::Stock::REMOVE,
                                   _("Remove images")),
                   sigc::mem_fun (image_list, &ImageList::remove_selected));
+
+    actions->add (Action::create ("ExecAction", Gtk::Stock::EXECUTE),
+                  sigc::mem_fun (*this, &MainWindow::on_exec));
+
     actions->add (Action::create ("QuitAction", Gtk::Stock::QUIT),
                   sigc::ptr_fun (&Gtk::Main::quit));
 
@@ -109,4 +118,9 @@ void MainWindow::on_add ()
     if (dialog.run () == ADD)
         for (Glib::RefPtr<Gio::File> file : dialog.get_files ())
             image_list.add_image_async (file);
+}
+
+void MainWindow::on_exec ()
+{
+    // TODO: implement
 }

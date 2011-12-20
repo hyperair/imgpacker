@@ -27,6 +27,7 @@ namespace ImgPack
 
         // callbacks
         void on_add ();
+        void on_exec ();
     };
 }
 
