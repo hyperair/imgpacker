@@ -31,11 +31,13 @@ namespace {
         return IconViewColumns::instance ();
     }
 
-    Glib::RefPtr<Gdk::Pixbuf> load_pixbuf (const Glib::RefPtr<Gio::File> file)
+    Glib::RefPtr<Gdk::Pixbuf> load_pixbuf (const Glib::RefPtr<Gio::File> file,
+                                           const int width, const int height)
     {
         LOG(info) << "Loading image from " << file->get_uri ();
+
         return Gdk::Pixbuf::create_from_stream_at_scale (file->read (),
-                                                         250, -1, true);
+                                                         width, height, true);
     }
 }
 
@@ -54,6 +56,7 @@ ImageList::ImageList (Application &app) :
     set_selection_mode (Gtk::SELECTION_MULTIPLE);
 
     set_reorderable (true);
+    set_item_width (250);
 
     image_ready.connect (sigc::mem_fun (*this, &ImageList::on_image_ready));
 }
@@ -62,7 +65,7 @@ void ImageList::add_image (const Glib::RefPtr<Gio::File> &file,
                            Glib::RefPtr<Gdk::Pixbuf> pixbuf)
 {
     if (!pixbuf)
-        pixbuf = load_pixbuf (file);
+        pixbuf = load_pixbuf (file, get_icon_width (), -1);
 
     Gtk::TreeIter iter = model->append ();
     iter->set_value (cols ().file, file);
@@ -76,7 +79,8 @@ void ImageList::add_image (const Glib::RefPtr<Gio::File> &file,
 void ImageList::add_image_async (const Glib::RefPtr<Gio::File> &file)
 {
     load_data_t data = {file,
-                        app.async_task (std::bind (&load_pixbuf, file),
+                        app.async_task (std::bind (&load_pixbuf, file,
+                                                   get_icon_width (), -1),
                                         image_ready)};
 
     load_queue.push_back (data);
