@@ -53,6 +53,8 @@ ImageList::ImageList (Application &app) :
 
     set_selection_mode (Gtk::SELECTION_MULTIPLE);
 
+    set_reorderable (true);
+
     image_ready.connect (sigc::mem_fun (*this, &ImageList::on_image_ready));
 }
 
