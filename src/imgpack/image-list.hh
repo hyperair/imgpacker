@@ -21,6 +21,7 @@ namespace ImgPack
 
         typedef sigc::slot<void, Glib::RefPtr<Gio::File>> SlotFinish;
         void add_image_async (const Glib::RefPtr<Gio::File> &file);
+
         void remove_selected ();
 
     private:
