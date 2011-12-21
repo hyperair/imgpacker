@@ -22,8 +22,11 @@ MainWindow::MainWindow (Application &app) :
 
     main_vbox.pack_start (main_pane, Gtk::PACK_EXPAND_WIDGET);
 
+
     Gtk::ScrolledWindow *scrolled = Gtk::manage (new Gtk::ScrolledWindow ());
     scrolled->add (image_list);
+    scrolled->set_min_content_width (image_list.get_icon_width () + 20);
+
     main_pane.pack1 (*scrolled, Gtk::SHRINK | Gtk::FILL);
     main_pane.pack2 (preview, Gtk::EXPAND | Gtk::FILL);
 
