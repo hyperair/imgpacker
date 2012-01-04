@@ -5,6 +5,7 @@
 
 #include <imgpack/image-list.hh>
 #include <imgpack/application.hh>
+#include <imgpack/thread-pool.hh>
 
 namespace {
     class IconViewColumns : public Gtk::TreeModel::ColumnRecord,
@@ -79,9 +80,10 @@ void ImageList::add_image (const Glib::RefPtr<Gio::File> &file,
 void ImageList::add_image_async (const Glib::RefPtr<Gio::File> &file)
 {
     load_data_t data = {file,
-                        app.async_task (std::bind (&load_pixbuf, file,
-                                                   get_icon_width (), -1),
-                                        image_ready)};
+                        ThreadPool::instance ().async (
+                            std::bind (&load_pixbuf, file,
+                                       get_icon_width (), -1),
+                            image_ready)};
 
     load_queue.push_back (data);
 }
