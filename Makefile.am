@@ -32,4 +32,28 @@ run: imgpacker
 update-po:
 	$(MAKE) -C po update-po
 
+DOC_INDICES = doc/html/index.html doc/xml/index.xml
+$(DOC_INDICES): doc/Doxyfile $(imgpacker_SOURCES)
+	doxygen $<
+	touch $@
+
+htmldocdir = $(docdir)/html
+xmldocdir = $(docdir/xml
+
+install-data-hook: $(DOC_INDICES)
+	cd doc && find html xml -type d -print |		\
+	while read dir; do					\
+		$(mkinstalldirs) $(DESTDIR)$(docdir)/$$dir;	\
+		$(install_sh_DATA)				\
+			`find $$dir -maxdepth 1 -type f`	\
+			$(DESTDIR)$(docdir)/$$dir;		\
+	done
+
+
+doc_DATA =					\
+	doc/html/index.html			\
+	doc/xml/index.xml
+
+CLEANFILES = $(dir $(DOC_INDICES))
+
 .PHONY: run update-po
