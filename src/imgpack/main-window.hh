@@ -11,7 +11,8 @@ namespace ImgPack
     class MainWindow : public Gtk::Window
     {
     public:
-        MainWindow (Application &app);
+        explicit MainWindow (Application &app);
+        MainWindow (const MainWindow &) = delete;
         ~MainWindow ();
 
     private:

@@ -12,7 +12,8 @@ namespace ImgPack
     class ImageList : public Gtk::IconView
     {
     public:
-        ImageList (Application &app);
+        explicit ImageList (Application &app);
+        ImageList (const ImageList &) = delete;
         ~ImageList () {}
 
         void add_image (const Glib::RefPtr<Gio::File> &file,
