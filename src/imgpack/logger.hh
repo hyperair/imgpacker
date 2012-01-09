@@ -35,6 +35,7 @@ namespace ImgPack
     {
     public:
         LogLine (std::string context, Logger::Level level);
+        LogLine (const LogLine) = default;
         ~LogLine ();
 
         template <typename T>

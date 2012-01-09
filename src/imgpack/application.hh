@@ -11,6 +11,7 @@ namespace ImgPack
     {
     public:
         Application (int &argc, char **&argv);
+        Application (const Application &) = delete;
         virtual ~Application () {}
 
         void run ();            // Hide Gtk::Main::run
