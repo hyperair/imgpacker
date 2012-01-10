@@ -15,6 +15,7 @@ MainWindow::MainWindow (Application &app) :
     add (main_vbox);
 
     init_uimgr ();
+    // Prepare menubar and toolbar
     main_vbox.pack_start (*uimgr->get_widget ("/main_menubar"),
                           Gtk::PACK_SHRINK);
     main_vbox.pack_start (*uimgr->get_widget ("/main_toolbar"),
@@ -22,7 +23,7 @@ MainWindow::MainWindow (Application &app) :
 
     main_vbox.pack_start (main_pane, Gtk::PACK_EXPAND_WIDGET);
 
-
+    // Prepare main pane
     Gtk::ScrolledWindow *scrolled = Gtk::manage (new Gtk::ScrolledWindow ());
     scrolled->add (image_list);
     scrolled->set_min_content_width (image_list.get_icon_width () + 20);
@@ -30,7 +31,14 @@ MainWindow::MainWindow (Application &app) :
     main_pane.pack1 (*scrolled, Gtk::SHRINK | Gtk::FILL);
     main_pane.pack2 (preview, Gtk::EXPAND | Gtk::FILL);
 
+    // Prepare statusbar
+    statusbar ().pack_end (progressbar (), Gtk::PACK_SHRINK);
+    main_vbox.pack_start (statusbar (), Gtk::PACK_SHRINK);
+
     main_vbox.show_all ();
+
+    // Only show statusbar when operation is active
+    statusbar ().hide ();
 
     set_default_size (640, 480);
 }
@@ -77,6 +85,7 @@ void MainWindow::init_uimgr ()
     actions->add (Action::create ("AddAction", Gtk::Stock::ADD,
                                   _("Add images")),
                   sigc::mem_fun (*this, &MainWindow::on_add));
+
     actions->add (Action::create ("RemoveAction", Gtk::Stock::REMOVE,
                                   _("Remove images")),
                   sigc::mem_fun (image_list, &ImageList::remove_selected));

@@ -15,6 +15,9 @@ namespace ImgPack
         MainWindow (const MainWindow &) = delete;
         ~MainWindow ();
 
+        Gtk::Statusbar &statusbar () {return _statusbar;}
+        Gtk::ProgressBar &progressbar () {return _progressbar;}
+
     private:
         Application                 &app;
         Glib::RefPtr<Gtk::UIManager> uimgr;
@@ -25,6 +28,9 @@ namespace ImgPack
 
         ImageList                    image_list;
         Gtk::DrawingArea             preview;
+
+        Gtk::Statusbar               _statusbar;
+        Gtk::ProgressBar             _progressbar;
 
         // callbacks
         void on_add ();
