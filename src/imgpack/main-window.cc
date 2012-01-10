@@ -47,6 +47,33 @@ MainWindow::~MainWindow ()
 {
 }
 
+void
+MainWindow::set_operation (const MainWindow::Operation::Ptr &operation)
+{
+    if (!operation)
+        unset_operation ();
+
+    if (this->operation)
+        throw OperationActive (this->operation);
+
+    this->operation = operation;
+
+    operation->attach (*this);
+
+    operation_finish_connection =
+        operation->connect_signal_finish
+        (sigc::mem_fun (statusbar (), &Gtk::Statusbar::hide));
+
+    statusbar ().show ();
+}
+
+void MainWindow::unset_operation ()
+{
+    operation->detach ();
+    operation_finish_connection.disconnect ();
+    operation.reset ();
+}
+
 void MainWindow::init_uimgr ()
 {
     uimgr->add_ui_from_string (
