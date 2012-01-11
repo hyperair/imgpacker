@@ -1,11 +1,9 @@
 #include <iostream>
-
 #include <nihpp/singleton.hh>
-#include <nihpp/sharedptrcreator.hh>
 
 #include <imgpack/image-list.hh>
-#include <imgpack/application.hh>
-#include <imgpack/thread-pool.hh>
+#include <imgpack/main-window.hh>
+#include <imgpack/logger.hh>
 
 namespace {
     class IconViewColumns : public Gtk::TreeModel::ColumnRecord,
@@ -31,23 +29,12 @@ namespace {
     {
         return IconViewColumns::instance ();
     }
-
-    Glib::RefPtr<Gdk::Pixbuf> load_pixbuf (const Glib::RefPtr<Gio::File> file,
-                                           const int width, const int height)
-    {
-        LOG(info) << "Loading image from " << file->get_uri ();
-
-        return Gdk::Pixbuf::create_from_stream_at_scale (file->read (),
-                                                         width, height, true);
-    }
 }
 
 using ImgPack::ImageList;
 
-
-ImageList::ImageList (Application &app) :
-    model (Gtk::ListStore::create (cols ())),
-    app (app)
+ImageList::ImageList () :
+    model (Gtk::ListStore::create (cols ()))
 {
     set_model (model);
 
@@ -58,16 +45,11 @@ ImageList::ImageList (Application &app) :
 
     set_reorderable (true);
     set_item_width (250);
-
-    image_ready.connect (sigc::mem_fun (*this, &ImageList::on_image_ready));
 }
 
 void ImageList::add_image (const Glib::RefPtr<Gio::File> &file,
-                           Glib::RefPtr<Gdk::Pixbuf> pixbuf)
+                           const Glib::RefPtr<Gdk::Pixbuf> &pixbuf)
 {
-    if (!pixbuf)
-        pixbuf = load_pixbuf (file, get_icon_width (), -1);
-
     Gtk::TreeIter iter = model->append ();
     iter->set_value (cols ().file, file);
     iter->set_value (cols ().uri, Glib::ustring (file->get_uri ()));
@@ -75,17 +57,6 @@ void ImageList::add_image (const Glib::RefPtr<Gio::File> &file,
     iter->set_value (cols ().thumbnail, pixbuf);
 
     LOG(info) << "Added image from " << file->get_uri ();
-}
-
-void ImageList::add_image_async (const Glib::RefPtr<Gio::File> &file)
-{
-    load_data_t data = {file,
-                        ThreadPool::instance ().async (
-                            std::bind (&load_pixbuf, file,
-                                       get_icon_width (), -1),
-                            image_ready)};
-
-    load_queue.push_back (data);
 }
 
 void ImageList::remove_selected ()
@@ -103,24 +74,4 @@ void ImageList::remove_selected ()
 
     for (Gtk::TreeIter &i : iters)
         model->erase (i);
-}
-
-void ImageList::on_image_ready ()
-{
-    while (!load_queue.empty () &&
-           load_queue.front ().second.wait_for (std::chrono::nanoseconds (0))) {
-        load_data_t data = load_queue.front ();
-        load_queue.pop_front ();
-
-        try {
-            add_image (data.first, data.second.get ());
-
-        } catch (Glib::Exception &e) {
-            LOG(warning) << "Could not open image "
-                         << data.first->get_uri ()
-                         << ": Caught Glib::Exception ["
-                         << e.what () << "]";
-            // TODO: show error dialog
-        }
-    }
 }

@@ -7,38 +7,20 @@
 
 namespace ImgPack
 {
-    class Application;
-
     class ImageList : public Gtk::IconView
     {
     public:
-        explicit ImageList (Application &app);
+        ImageList ();
         ImageList (const ImageList &) = delete;
         ~ImageList () {}
 
         void add_image (const Glib::RefPtr<Gio::File> &file,
-                        Glib::RefPtr<Gdk::Pixbuf> pixbuf =
-                        Glib::RefPtr<Gdk::Pixbuf>());
-
-        typedef sigc::slot<void, Glib::RefPtr<Gio::File>> SlotFinish;
-        void add_image_async (const Glib::RefPtr<Gio::File> &file);
+                        const Glib::RefPtr<Gdk::Pixbuf> &pixbuf);
 
         void remove_selected ();
 
     private:
         Glib::RefPtr<Gtk::ListStore> model;
-        Application &app;
-
-        typedef Glib::RefPtr<Gio::File>            file_t;
-        typedef Glib::RefPtr<Gdk::Pixbuf>          pixbuf_t;
-        typedef std::shared_future<pixbuf_t>       future_pixbuf_t;
-        typedef std::pair<file_t, future_pixbuf_t> load_data_t;
-
-        std::list<load_data_t> load_queue;
-
-        Glib::Dispatcher image_ready;
-
-        void on_image_ready ();
     };
 }
 
