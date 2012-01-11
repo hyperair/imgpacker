@@ -14,6 +14,8 @@ namespace ImgPack
         ThreadPool ();
         ~ThreadPool ();
 
+        static long hardware_concurrency ();
+
         // Reimplemented std::async which takes a callable (with no arguments,
         // so bind() or a lambda should be used to pass arguments), and a
         // dispatcher which is called when the value in the std::future is ready
