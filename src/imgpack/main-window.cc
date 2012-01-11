@@ -29,6 +29,14 @@ public:
 
     void enqueue (Glib::RefPtr<Gio::File> file);
 
+    std::list<std::tuple<Glib::RefPtr<Gio::File>,
+                         Glib::RefPtr<Gdk::Pixbuf> > > &
+    get_results () {return results;}
+
+    std::list<std::tuple<Glib::RefPtr<Gio::File>,
+                         Glib::ustring> >
+    get_errors () {return results;}
+
 private:
     MainWindow *mainwindow;
     guint contextid;
@@ -46,7 +54,6 @@ private:
     void on_progress ();
 
     Glib::Dispatcher thread_finished;
-    void on_thread_finished ();
 
     Glib::Thread *load_pixbufs_thread;
     void load_pixbufs ();
@@ -66,26 +73,32 @@ private:
 // PixbufLoader definitions
 MainWindow::PixbufLoader::PixbufLoader () :
     mainwindow (nullptr),
-    cancellable (Gio::Cancellable::create ()),
     load_pixbufs_thread (nullptr)
 {
     progress.connect
         (sigc::mem_fun (*this, &PixbufLoader::on_progress));
     thread_finished.connect
-        (sigc::mem_fun (*this, &PixbufLoader::on_thread_finished));
+        (sigc::mem_fun (*this, &PixbufLoader::detach));
 }
 
 void MainWindow::PixbufLoader::attach (MainWindow &mainwindow)
 {
     g_assert (this->mainwindow == 0);
+
     this->mainwindow = &mainwindow;
 
     contextid = mainwindow.statusbar ().get_context_id ("Adding images");
     mainwindow.statusbar ().push (_("Adding images..."),
-                               contextid);
+                                  contextid);
     mainwindow.progressbar ().set_fraction (0.0);
 
-    g_assert (load_pixbufs_thread == nullptr);
+    // Initialize data structures
+    g_assert (!cancellable && !load_pixbufs_thread);
+    cancellable = Gio::Cancellable::create ();
+    results.clear ();
+    errors.clear ();
+
+    // Start thread
     load_pixbufs_thread = Glib::Thread::create
         (sigc::mem_fun (*this, &PixbufLoader::load_pixbufs), true);
 }
@@ -101,11 +114,11 @@ void MainWindow::PixbufLoader::detach ()
         load_pixbufs_thread->join ();
 
     load_pixbufs_thread = nullptr;
-    cancellable = Gio::Cancellable::create ();
-
-    finish ();
+    cancellable.reset ();
 
     mainwindow = nullptr;
+
+    finish ();
 }
 
 void MainWindow::PixbufLoader::enqueue (file_t file)
@@ -233,10 +246,11 @@ void MainWindow::PixbufLoader::load_pixbuf (Glib::RefPtr<Gio::File> file)
         typename error_list_type::value_type error {file, e.what ()};
         errors.push_back (error);
 
-        LOG(info) << "Could not load pixbuf from " << file->get_uri ();
+        LOG(info) << "Could not load pixbuf from " << file->get_uri () << ": "
+                  << e.what ();
     }
 
-    update_progressbar ();
+    progress ();
 }
 
 void MainWindow::PixbufLoader::on_progress ()
@@ -250,17 +264,6 @@ void MainWindow::PixbufLoader::on_progress ()
     int total = results_size + errors_size + unprocessed_size;
     float fraction = float(results_size + errors_size) / total;
     mainwindow->progressbar ().set_fraction (fraction);
-}
-
-void MainWindow::PixbufLoader::on_thread_finished ()
-{
-    if (!load_pixbufs_thread)
-        return;
-
-    load_pixbufs_thread->join ();
-    load_pixbufs_thread = nullptr;
-
-    finish ();
 }
 
 
@@ -309,21 +312,19 @@ MainWindow::~MainWindow ()
 void
 MainWindow::set_operation (const MainWindow::Operation::Ptr &operation)
 {
-    if (!operation)
-        unset_operation ();
+    g_assert (operation);
 
     if (this->operation)
         throw OperationActive (this->operation);
 
     this->operation = operation;
 
-    operation->attach (*this);
-
     operation_finish_connection = operation->connect_signal_finish ([&] () {
             statusbar ().hide ();
             unset_operation ();
         });
 
+    operation->attach (*this);
     statusbar ().show ();
 }
 
@@ -427,6 +428,7 @@ void MainWindow::on_add ()
         for (Glib::RefPtr<Gio::File> file : dialog.get_files ())
             pixbuf_loader->enqueue (file);
 
+    // If !operation, pixbuf_loader is already the current operation
     if (!operation)
         set_operation (pixbuf_loader);
 }
