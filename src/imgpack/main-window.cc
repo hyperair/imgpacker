@@ -4,13 +4,52 @@
 #include <imgpack/application.hh>
 
 using ImgPack::MainWindow;
+using ImgPack::StatusClient;
+using ImgPack::StatusController;
+
 using Gtk::UIManager;
 
+void StatusClient::unlink ()
+{
+    controller = nullptr;
+}
+
+Gtk::Statusbar &StatusClient::statusbar ()
+{
+    return controller->statusbar;
+}
+
+Gtk::ProgressBar &StatusClient::progressbar ()
+{
+    return controller->progressbar;
+}
+
+
+// StatusController definitions
+StatusController::StatusController () {}
+StatusController::~StatusController ()
+{
+    StatusClient::Ptr ptr = client.lock ();
+
+    if (ptr)
+        ptr->unlink ();
+}
+
+StatusClient::Ptr StatusController::request ()
+{
+    if (client.expired ())
+        throw StatusBusy ();
+
+    StatusClient::Ptr new_client = StatusClient::create (*this);
+    client = new_client;
+    return new_client;
+}
+
+
+// MainWindow definitions
 MainWindow::MainWindow (Application &app) :
     app (app),
-    uimgr (UIManager::create ()),
-
-    image_list (app)
+    uimgr (UIManager::create ())
 {
     add (main_vbox);
 
@@ -129,7 +168,7 @@ void MainWindow::on_add ()
     // Show dialog and process response
     if (dialog.run () == ADD)
         for (Glib::RefPtr<Gio::File> file : dialog.get_files ())
-            image_list.add_image_async (file);
+        {}//image_list.add_image_async (file);
 }
 
 void MainWindow::on_exec ()
