@@ -43,6 +43,8 @@ namespace ImgPack
         std::shared_ptr<Operation>   operation;
         sigc::connection             operation_finish_connection;
 
+        class PixbufLoader;
+        std::shared_ptr<PixbufLoader> pixbuf_loader;
         // callbacks
         void on_add ();
         void on_exec ();
