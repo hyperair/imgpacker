@@ -99,6 +99,7 @@ namespace ImgPack
 
         void prepare_pixbuf_loader ();
         void reap_pixbufs ();
+        void on_pixbuf_abort ();
     };
 }
 

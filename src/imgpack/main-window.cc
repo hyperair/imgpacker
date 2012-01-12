@@ -200,6 +200,8 @@ void MainWindow::prepare_pixbuf_loader ()
     pixbuf_loader = PixbufLoader::create (request_status ());
     pixbuf_loader->connect_signal_finish
         (sigc::mem_fun (*this, &MainWindow::reap_pixbufs));
+    pixbuf_loader->connect_signal_abort
+        (sigc::mem_fun (*this, &MainWindow::on_pixbuf_abort));
 }
 
 void MainWindow::reap_pixbufs ()
@@ -210,5 +212,10 @@ void MainWindow::reap_pixbufs ()
         if (*i)
             image_list.add_image (i->file (), i->pixbuf ());
 
+    pixbuf_loader.reset ();
+}
+
+void MainWindow::on_pixbuf_abort ()
+{
     pixbuf_loader.reset ();
 }

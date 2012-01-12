@@ -43,7 +43,7 @@ void PixbufLoader::abort ()
     cancellable->cancel ();
     worker->join ();
 
-    finish ();
+    aborted ();
 }
 
 namespace {

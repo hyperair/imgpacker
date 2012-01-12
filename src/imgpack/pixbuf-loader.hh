@@ -34,9 +34,15 @@ namespace ImgPack
             return finish.connect (slot);
         }
 
+        sigc::connection connect_signal_abort (const sigc::slot<void> &slot)
+        {
+            return aborted.connect (slot);
+        }
+
     private:
         std::shared_ptr<StatusClient> status;
         sigc::signal<void> finish;
+        sigc::signal<void> aborted;
 
         Glib::Thread *worker;
 
