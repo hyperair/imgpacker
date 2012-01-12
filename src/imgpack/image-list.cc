@@ -54,7 +54,24 @@ void ImageList::add_image (const Glib::RefPtr<Gio::File> &file,
     iter->set_value (cols ().file, file);
     iter->set_value (cols ().uri, Glib::ustring (file->get_uri ()));
     iter->set_value (cols ().filename, Glib::ustring (file->get_basename ()));
-    iter->set_value (cols ().thumbnail, pixbuf);
+
+    Glib::RefPtr<Gdk::Pixbuf> thumbnail;
+
+    int target_width = std::min<int> (property_item_width (),
+                                      pixbuf->get_width ());
+    int target_height =
+        target_width * pixbuf->get_height () / pixbuf->get_width ();
+
+    if (target_width < pixbuf->get_width ())
+        thumbnail =
+            pixbuf->scale_simple (target_width,
+                                  target_height,
+                                  Gdk::INTERP_BILINEAR);
+
+    else
+        thumbnail = pixbuf;
+
+    iter->set_value (cols ().thumbnail, thumbnail);
 
     LOG(info) << "Added image from " << file->get_uri ();
 }
