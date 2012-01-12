@@ -12,6 +12,9 @@ AM_SILENT_RULES([yes])
 PKG_CHECK_MODULES([GTKMM], [gtkmm-3.0])
 PKG_CHECK_MODULES([NIHPP], [nihpp])
 
+AC_LANG([C++])
+AC_CHECK_HEADER([autosprintf.h])
+
 dnl i18n bits
 IT_PROG_INTLTOOL([0.35.0])
 GETTEXT_PACKAGE=imgpacker

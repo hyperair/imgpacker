@@ -1,4 +1,8 @@
-// #include <autosprintf.h>
+#include <string>
+#include <iostream>
+// The above two includes are needed before autosprintf.h because it does funny
+// things with __attribute__
+#include <autosprintf.h>
 
 #include <glibmm/i18n.h>
 #include <imgpack/pixbuf-loader.hh>
@@ -6,7 +10,6 @@
 #include <imgpack/logger.hh>
 
 using ImgPack::PixbufLoader;
-// using gnu::autosprintf;
 
 PixbufLoader::PixbufLoader (StatusClient::Ptr status) :
     status (status),
@@ -193,9 +196,9 @@ void PixbufLoader::on_progress ()
 
     status->statusbar ().pop (status_context);
 
-    // std::string message = autosprintf (_("Adding images (%d/%d)"),
-    //                                    results_size, total);
-    // status->statusbar ().push (message, status_context);
+    std::string message = gnu::autosprintf (_("Adding images (%d/%d)"),
+                                            results_size, total);
+    status->statusbar ().push (message, status_context);
 
     status->progressbar ().set_fraction (fraction);
 }

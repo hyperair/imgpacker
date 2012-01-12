@@ -20,7 +20,7 @@ imgpacker_CXXFLAGS =						\
 	$(NIHPP_CFLAGS)						\
 	-I$(top_srcdir)/src					\
 	-DPROGRAMNAME_LOCALEDIR="\"$(PROGRAMNAME_LOCALEDIR)\""
-imgpacker_LDADD = $(GTKMM_LIBS)
+imgpacker_LDADD = $(GTKMM_LIBS) -lasprintf
 
 SUBDIRS = po
 
@@ -59,3 +59,5 @@ doc_DATA =					\
 CLEANFILES = $(dir $(DOC_INDICES))
 
 .PHONY: run update-po
+
+ACLOCAL_AMFLAGS = -I m4
