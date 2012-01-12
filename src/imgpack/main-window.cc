@@ -9,6 +9,18 @@ using ImgPack::StatusController;
 
 using Gtk::UIManager;
 
+StatusClient::StatusClient (StatusController &controller) :
+    controller (&controller)
+{
+    controller.statusbar.show ();
+}
+
+StatusClient::~StatusClient ()
+{
+    if (controller)
+        controller->statusbar.hide ();
+}
+
 void StatusClient::unlink ()
 {
     controller = nullptr;

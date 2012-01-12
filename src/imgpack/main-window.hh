@@ -29,9 +29,10 @@ namespace ImgPack
 
         bool live () {return controller;}
 
+        ~StatusClient ();
+
     private:
-        explicit StatusClient (StatusController &controller) :
-            controller (&controller) {}
+        explicit StatusClient (StatusController &controller);
 
         void unlink ();
 
