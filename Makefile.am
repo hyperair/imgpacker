@@ -10,6 +10,8 @@ imgpacker_SOURCES =				\
 	src/imgpack/logger.cc			\
 	src/imgpack/thread-pool.hh		\
 	src/imgpack/thread-pool.cc		\
+	src/imgpack/pixbuf-loader.hh		\
+	src/imgpack/pixbuf-loader.cc		\
 	src/main.cc
 imgpacker_CXXFLAGS =						\
 	-std=c++0x						\

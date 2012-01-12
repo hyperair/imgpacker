@@ -37,7 +37,7 @@ StatusController::~StatusController ()
 
 StatusClient::Ptr StatusController::request ()
 {
-    if (client.expired ())
+    if (!client.expired ())
         throw StatusBusy ();
 
     StatusClient::Ptr new_client = StatusClient::create (*this);
@@ -165,13 +165,38 @@ void MainWindow::on_add ()
     all_filter->set_name (_("All Files"));
     dialog.add_filter (all_filter);
 
+    prepare_pixbuf_loader ();
+
     // Show dialog and process response
     if (dialog.run () == ADD)
         for (Glib::RefPtr<Gio::File> file : dialog.get_files ())
-        {}//image_list.add_image_async (file);
+            pixbuf_loader->enqueue (file);
+
+    pixbuf_loader->start ();
 }
 
 void MainWindow::on_exec ()
 {
     // TODO: implement
+}
+
+void MainWindow::prepare_pixbuf_loader ()
+{
+    if (pixbuf_loader)
+        return;
+
+    pixbuf_loader = PixbufLoader::create (request_status ());
+    pixbuf_loader->connect_signal_finish
+        (sigc::mem_fun (*this, &MainWindow::reap_pixbufs));
+}
+
+void MainWindow::reap_pixbufs ()
+{
+    auto results = pixbuf_loader->results ();
+
+    for (auto i : results)
+        if (*i)
+            image_list.add_image (i->file (), i->pixbuf ());
+
+    pixbuf_loader.reset ();
 }

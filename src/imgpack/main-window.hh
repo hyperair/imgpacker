@@ -4,6 +4,7 @@
 #include <nihpp/sharedptrcreator.hh>
 #include <gtkmm.h>
 #include <imgpack/image-list.hh>
+#include <imgpack/pixbuf-loader.hh>
 
 namespace ImgPack
 {
@@ -89,9 +90,14 @@ namespace ImgPack
         Gtk::Statusbar &statusbar () {return status.statusbar;}
         Gtk::ProgressBar &progressbar () {return status.progressbar;}
 
+        PixbufLoader::Ptr            pixbuf_loader;
+
         // callbacks
         void on_add ();
         void on_exec ();
+
+        void prepare_pixbuf_loader ();
+        void reap_pixbufs ();
     };
 }
 
