@@ -57,7 +57,7 @@ StatusClient::Ptr StatusController::request ()
     return new_client;
 }
 
-
+
 // MainWindow definitions
 MainWindow::MainWindow (Application &app) :
     app (app),
@@ -66,6 +66,8 @@ MainWindow::MainWindow (Application &app) :
     add (main_vbox);
 
     init_uimgr ();
+    add_accel_group (uimgr->get_accel_group ());
+
     // Prepare menubar and toolbar
     main_vbox.pack_start (*uimgr->get_widget ("/main_menubar"),
                           Gtk::PACK_SHRINK);
