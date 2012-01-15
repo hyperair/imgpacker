@@ -8,6 +8,22 @@ AC_CONFIG_SRCDIR([src/main.cc])
 AC_CONFIG_HEADERS([config.h])
 
 AC_PROG_CXX
+AC_COMPILE_STDCXX_0X
+if test "$ac_cv_cxx_compile_cxx0x_native" = yes; then
+    CXX0X_FLAG=""
+elif test "$ac_cv_cxx_compile_cxx0x_gxx" = yes; then
+    CXX0X_FLAG="-std=gnu++0x"
+elif test "$ac_cv_cxx_compile_cxx0x_cxx" = yes; then
+    CXX0X_FLAG="-std=c++0x"
+else
+    AC_MSG_ERROR([C++0x support needed for $PACKAGE])
+fi
+AC_SUBST([CXX0X_FLAG])
+
+AC_HEADER_STDCXX_0X
+if test "$ac_cv_cxx_stdcxx_0x" = no; then
+    AC_MSG_ERROR([C++0x headers needed to build $PACKAGE])
+fi
 AM_SILENT_RULES([yes])
 PKG_CHECK_MODULES([GTKMM], [gtkmm-3.0])
 PKG_CHECK_MODULES([NIHPP], [nihpp])

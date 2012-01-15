@@ -14,7 +14,7 @@ imgpacker_SOURCES =				\
 	src/imgpack/pixbuf-loader.cc		\
 	src/main.cc
 imgpacker_CXXFLAGS =						\
-	-std=c++0x						\
+	$(CXX0X_FLAG)						\
 	$(WARN_CXXFLAGS)					\
 	$(GTKMM_CFLAGS)						\
 	$(NIHPP_CFLAGS)						\
