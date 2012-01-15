@@ -1,7 +1,3 @@
-#include <string>
-#include <iostream>
-// The above two includes are needed before autosprintf.h because it does funny
-// things with __attribute__
 #include <autosprintf.h>
 
 #include <glibmm/i18n.h>
