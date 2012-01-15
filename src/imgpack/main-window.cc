@@ -329,10 +329,10 @@ void MainWindow::reap_pixbufs ()
         else
             errors.add_error (i->file (), i->message ());
 
+    pixbuf_loader.reset ();
+
     if (errors.has_errors ())
         errors.run ();
-
-    pixbuf_loader.reset ();
 }
 
 void MainWindow::on_pixbuf_abort ()
