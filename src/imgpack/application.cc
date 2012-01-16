@@ -43,10 +43,11 @@ void Application::spawn_window ()
 
             windows.erase (weak_window.lock ());
 
-            if (windows.empty ())
+            if (windows.empty ()) {
+                LOG(info) << "No remaining windows. Quitting.";
                 quit ();
 
-            else
+            } else
                 LOG(info) << "Remaining open windows: " << windows.size ();
         });
 
