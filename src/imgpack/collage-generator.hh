@@ -4,6 +4,8 @@
 #include <memory>
 #include <list>
 
+#include <gtkmm.h>
+
 namespace ImgPack
 {
     class Rectangle;
@@ -39,7 +41,7 @@ namespace ImgPack
         typedef std::shared_ptr<CollageGenerator> Ptr;
         typedef std::weak_ptr<CollageGenerator> WPtr;
 
-        virtual CollageGenerator () {}
+        virtual ~CollageGenerator () {}
 
         virtual void add_source (const Glib::RefPtr<Gdk::Pixbuf> &pixbuf) = 0;
         virtual void start () = 0;

@@ -1,8 +1,10 @@
 #include <imgpack/collage-generator.hh>
 
+using namespace ImgPack;
+
 namespace {
     class CollageGeneratorImpl :
-        public ImgPack::CollageGenerator
+        public CollageGenerator
     {
     public:
         virtual ~CollageGeneratorImpl () {}

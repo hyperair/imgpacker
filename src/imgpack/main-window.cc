@@ -8,11 +8,7 @@
 #include <imgpack/collage-generator.hh>
 #include <imgpack/logger.hh>
 
-using ImgPack::Application;
-using ImgPack::ImageList;
-using ImgPack::MainWindow;
-using ImgPack::PixbufLoader;
-using ImgPack::StatusClient;
+using namespace ImgPack;
 
 using Gtk::UIManager;
 
