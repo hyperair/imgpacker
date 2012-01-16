@@ -8,9 +8,7 @@
 using ImgPack::Application;
 
 Application::Application (int &argc, char **&argv) :
-    ::Gtk::Main (argc, argv),
-
-    main_window (MainWindow::create (*this))
+    Gtk::Main (argc, argv)
 {
     Glib::set_application_name (_("ImgPacker Collage Creator"));
 
@@ -24,10 +22,33 @@ Application::Application (int &argc, char **&argv) :
 
 void Application::run ()
 {
-    Gtk::Main::run (*main_window);
+    spawn_window ();
+    Gtk::Main::run ();
 }
 
 void Application::show_about ()
 {
     about_dialog.show ();
+}
+
+void Application::spawn_window ()
+{
+    MainWindow::Ptr window = MainWindow::create (*this);
+    MainWindow::WPtr weak_window = window;
+
+    windows.insert (window);
+
+    window->signal_hide ().connect ([=, &windows]() {
+            LOG(info) << "A window was closed. Removing from window list..";
+
+            windows.erase (weak_window.lock ());
+
+            if (windows.empty ())
+                quit ();
+
+            else
+                LOG(info) << "Remaining open windows: " << windows.size ();
+        });
+
+    window->show ();
 }

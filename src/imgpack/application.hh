@@ -1,6 +1,7 @@
 #ifndef IMGPACK_IMGPACK_APPLICATION_HH
 #define IMGPACK_IMGPACK_APPLICATION_HH
 
+#include <unordered_set>
 #include <gtkmm.h>
 #include <imgpack/main-window.hh>
 
@@ -17,8 +18,10 @@ namespace ImgPack
 
         void show_about ();
 
+        void spawn_window ();
+
     private:
-        MainWindow::Ptr  main_window;
+        std::unordered_set<MainWindow::Ptr>  windows;
         Gtk::AboutDialog about_dialog;
     };
 }

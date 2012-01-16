@@ -5,6 +5,7 @@
 #include <imgpack/application.hh>
 #include <imgpack/image-list.hh>
 #include <imgpack/pixbuf-loader.hh>
+#include <imgpack/logger.hh>
 
 using ImgPack::Application;
 using ImgPack::ImageList;
@@ -94,6 +95,7 @@ namespace {
         // callbacks
         void on_add_clicked ();
         void on_exec ();
+        void on_new_window ();
 
         void prepare_pixbuf_loader ();
         void reap_pixbufs ();
@@ -352,11 +354,14 @@ void MainWindowImpl::init_uimgr ()
         "<ui>"
         "    <menubar name=\"main_menubar\">"
         "        <menu action=\"FileMenuAction\">"
+        "            <menuitem action=\"NewAction\" />"
+        "            <separator />"
         "            <menuitem action=\"AddAction\" />"
         "            <menuitem action=\"RemoveAction\" />"
         "            <separator />"
         "            <menuitem action=\"ExecAction\" />"
         "            <separator />"
+        "            <menuitem action=\"CloseAction\" />"
         "            <menuitem action=\"QuitAction\" />"
         "        </menu>"
         "        <menu action=\"HelpMenuAction\">"
@@ -364,6 +369,8 @@ void MainWindowImpl::init_uimgr ()
         "        </menu>"
         "    </menubar>"
         "    <toolbar name=\"main_toolbar\">"
+        "        <toolitem action=\"NewAction\" />"
+        "        <separator />"
         "        <toolitem action=\"AddAction\" />"
         "        <toolitem action=\"RemoveAction\" />"
         "        <separator />"
@@ -381,6 +388,9 @@ void MainWindowImpl::init_uimgr ()
     actions->add (Action::create ("AboutAction", _("_About")),
                   sigc::mem_fun (app, &Application::show_about));
 
+    actions->add (Action::create ("NewAction", Gtk::Stock::NEW,
+                                  _("New Collage")),
+                  sigc::mem_fun (*this, &MainWindowImpl::on_new_window));
     actions->add (Action::create ("AddAction", Gtk::Stock::ADD,
                                   _("Add images")),
                   sigc::mem_fun (*this, &MainWindowImpl::on_add_clicked));
@@ -391,6 +401,9 @@ void MainWindowImpl::init_uimgr ()
 
     actions->add (Action::create ("ExecAction", Gtk::Stock::EXECUTE),
                   sigc::mem_fun (*this, &MainWindowImpl::on_exec));
+
+    actions->add (Action::create ("CloseAction", Gtk::Stock::CLOSE),
+                  sigc::mem_fun (*this, &MainWindowImpl::hide));
 
     actions->add (Action::create ("QuitAction", Gtk::Stock::QUIT),
                   sigc::ptr_fun (&Gtk::Main::quit));
@@ -416,6 +429,11 @@ void MainWindowImpl::on_add_clicked ()
 void MainWindowImpl::on_exec ()
 {
     // TODO: implement
+}
+
+void MainWindowImpl::on_new_window ()
+{
+    app.spawn_window ();
 }
 
 void MainWindowImpl::prepare_pixbuf_loader ()
