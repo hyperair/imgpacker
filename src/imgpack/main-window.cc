@@ -393,6 +393,7 @@ void MainWindowImpl::init_uimgr ()
                   sigc::mem_fun (*this, &MainWindowImpl::on_new_window));
     actions->add (Action::create ("AddAction", Gtk::Stock::ADD,
                                   _("Add images")),
+                  Gtk::AccelKey ("<Alt>A"),
                   sigc::mem_fun (*this, &MainWindowImpl::on_add_clicked));
 
     actions->add (Action::create ("RemoveAction", Gtk::Stock::REMOVE,
