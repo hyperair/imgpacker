@@ -274,7 +274,7 @@ void PixbufLoaderImpl::on_progress ()
         fraction = 0;
 
     else
-        fraction = (double)results_size / unprocessed_size;
+        fraction = (double)results_size / total;
 
     status->statusbar ().pop (status_context);
 
@@ -282,5 +282,6 @@ void PixbufLoaderImpl::on_progress ()
                                             results_size, total);
     status->statusbar ().push (message, status_context);
 
+    LOG(info) << "Progress fraction is " << fraction;
     status->progressbar ().set_fraction (fraction);
 }
