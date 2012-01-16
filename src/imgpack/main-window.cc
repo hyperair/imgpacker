@@ -58,6 +58,154 @@ StatusClient::Ptr StatusController::request ()
 }
 
 
+// Helper classes and functions
+namespace {
+    class SelectableCellRendererText : public Gtk::CellRendererText
+    {
+    public:
+        SelectableCellRendererText ()
+        {
+            property_mode () =  Gtk::CELL_RENDERER_MODE_ACTIVATABLE;
+        }
+
+    protected:
+        virtual void on_editing_started (Gtk::CellEditable *editable,
+                                         const Glib::ustring &)
+        {
+            Gtk::Entry *entry = dynamic_cast<Gtk::Entry *> (editable);
+
+            if (entry)
+                entry->property_editable () = false;
+        }
+    };
+
+
+    class ImportErrorDialog : public Gtk::MessageDialog
+    {
+        struct Columns;
+        bool _has_errors;
+        Glib::RefPtr<Gtk::ListStore> model;
+        Gtk::TreeView view;
+
+    public:
+        ImportErrorDialog (Gtk::Window &parent);
+
+        void add_error (const Glib::RefPtr<Gio::File> &file,
+                        const Glib::ustring &message);
+
+        bool has_errors () {return _has_errors;}
+    };
+
+
+    struct ImportErrorDialog::Columns :
+        public Gtk::TreeModel::ColumnRecord,
+        public nihpp::Singleton<Columns>
+    {
+        Gtk::TreeModelColumn<std::string> uri;
+        Gtk::TreeModelColumn<Glib::ustring> message;
+
+        Columns () {add (uri); add (message);}
+    };
+
+    Gtk::TreeViewColumn &
+    make_selectable_text_column (const Glib::ustring &title,
+                 const Gtk::TreeModelColumnBase &model_column)
+    {
+        Gtk::TreeViewColumn *column = manage (new Gtk::TreeViewColumn);
+        Gtk::CellRendererText *renderer =
+            manage (new SelectableCellRendererText);
+
+        renderer->property_editable () = true;
+
+        column->pack_start (*renderer, Gtk::PACK_EXPAND_WIDGET);
+        column->set_renderer (*renderer, model_column);
+        column->set_resizable ();
+        column->set_title (title);
+
+        return *column;
+    }
+
+    struct ImageChooserDialog : Gtk::FileChooserDialog
+    {
+    public:
+        enum Response {
+            ADD,
+            CANCEL
+        };
+
+        ImageChooserDialog (Gtk::Window &parent);
+    };
+}
+
+ImportErrorDialog::ImportErrorDialog (Gtk::Window &parent) :
+    Gtk::MessageDialog (parent, _("Import Error"), false,
+                        Gtk::MESSAGE_ERROR),
+
+    _has_errors (false),
+    model (Gtk::ListStore::create (Columns::instance ())),
+    view (model)
+{
+    set_secondary_text (_("Some files could not be imported."));
+    set_resizable (true);
+    set_title (_("Import Error"));
+
+    view.append_column
+        (make_selectable_text_column (_("URI"), Columns::instance ().uri));
+    view.append_column
+        (make_selectable_text_column (_("Error message"),
+                                      Columns::instance ().message));
+
+    // Add things to vbox
+    Gtk::Box *vbox = get_content_area ();
+    Gtk::ScrolledWindow *scrolled = manage (new Gtk::ScrolledWindow ());
+    scrolled->set_min_content_width (400);
+    scrolled->set_min_content_height (200);
+    scrolled->add (view);
+
+    vbox->pack_start (*scrolled, Gtk::PACK_EXPAND_WIDGET);
+
+    scrolled->show_all ();
+
+    // Set default size to prop window open
+    set_default_size (600, -1);
+}
+
+void ImportErrorDialog::add_error (const Glib::RefPtr<Gio::File> &file,
+                             const Glib::ustring &message)
+{
+    auto iter = model->append ();
+    iter->set_value (Columns::instance ().uri, file->get_uri ());
+    iter->set_value (Columns::instance ().message, message);
+
+    _has_errors = true;
+}
+
+ImageChooserDialog::ImageChooserDialog (Gtk::Window &parent) :
+    Gtk::FileChooserDialog (parent, _("Select image(s)"))
+{
+    add_button (Gtk::Stock::CANCEL, CANCEL);
+    add_button (Gtk::Stock::OPEN, ADD);
+
+    set_default_response (ADD);
+    set_select_multiple (true);
+    set_local_only (false);
+
+    // Set up image filter
+    Glib::RefPtr<Gtk::FileFilter> image_filter = Gtk::FileFilter::create ();
+    image_filter->add_pattern ("*");
+    image_filter->set_name (_("All Images"));
+
+    // Set up all files filter
+    Glib::RefPtr<Gtk::FileFilter> all_filter = Gtk::FileFilter::create ();
+    all_filter->add_pattern ("*");
+    all_filter->set_name (_("All Files"));
+
+    // Add filters
+    add_filter (image_filter);
+    add_filter (all_filter);
+}
+
+
 // MainWindow definitions
 MainWindow::MainWindow (Application &app) :
     app (app),
@@ -155,34 +303,12 @@ void MainWindow::init_uimgr ()
 // callbacks
 void MainWindow::on_add ()
 {
-    enum {
-        ADD,
-        CANCEL
-    };
-
-    Gtk::FileChooserDialog dialog (*this, _("Select image(s)"));
-    dialog.add_button (Gtk::Stock::CANCEL, CANCEL);
-    dialog.add_button (Gtk::Stock::OPEN, ADD);
-
-    dialog.set_default_response (ADD);
-    dialog.set_select_multiple (true);
-    dialog.set_local_only (false);
-
-    // Setup and add filters
-    Glib::RefPtr<Gtk::FileFilter> image_filter = Gtk::FileFilter::create ();
-    image_filter->add_pixbuf_formats ();
-    image_filter->set_name (_("All Images"));
-    dialog.add_filter (image_filter);
-
-    Glib::RefPtr<Gtk::FileFilter> all_filter = Gtk::FileFilter::create ();
-    all_filter->add_pattern ("*");
-    all_filter->set_name (_("All Files"));
-    dialog.add_filter (all_filter);
+    ImageChooserDialog dialog (*this);
 
     prepare_pixbuf_loader ();
 
     // Show dialog and process response
-    if (dialog.run () == ADD)
+    if (dialog.run () == ImageChooserDialog::ADD)
         for (Glib::RefPtr<Gio::File> file : dialog.get_files ())
             pixbuf_loader->enqueue (file);
 
@@ -204,115 +330,6 @@ void MainWindow::prepare_pixbuf_loader ()
         (sigc::mem_fun (*this, &MainWindow::reap_pixbufs));
     pixbuf_loader->connect_signal_abort
         (sigc::mem_fun (*this, &MainWindow::on_pixbuf_abort));
-}
-
-namespace {
-    class SelectableCellRendererText : public Gtk::CellRendererText
-    {
-    public:
-        SelectableCellRendererText ()
-        {
-            property_mode () =  Gtk::CELL_RENDERER_MODE_ACTIVATABLE;
-        }
-
-    protected:
-        virtual void on_editing_started (Gtk::CellEditable *editable,
-                                         const Glib::ustring &)
-        {
-            Gtk::Entry *entry = dynamic_cast<Gtk::Entry *> (editable);
-
-            if (entry)
-                entry->property_editable () = false;
-        }
-    };
-
-
-    class ImportErrorDialog : public Gtk::MessageDialog
-    {
-        struct Columns;
-        bool _has_errors;
-        Glib::RefPtr<Gtk::ListStore> model;
-        Gtk::TreeView view;
-
-    public:
-        ImportErrorDialog (Gtk::Window &parent);
-
-        void add_error (const Glib::RefPtr<Gio::File> &file,
-                        const Glib::ustring &message);
-
-        bool has_errors () {return _has_errors;}
-    };
-
-
-    struct ImportErrorDialog::Columns :
-        public Gtk::TreeModel::ColumnRecord,
-        public nihpp::Singleton<Columns>
-    {
-        Gtk::TreeModelColumn<std::string> uri;
-        Gtk::TreeModelColumn<Glib::ustring> message;
-
-        Columns () {add (uri); add (message);}
-    };
-
-    Gtk::TreeViewColumn &
-    make_column (const Glib::ustring &title,
-                 const Gtk::TreeModelColumnBase &model_column)
-    {
-        Gtk::TreeViewColumn *column = manage (new Gtk::TreeViewColumn);
-        Gtk::CellRendererText *renderer =
-            manage (new SelectableCellRendererText);
-
-        renderer->property_editable () = true;
-
-        column->pack_start (*renderer, Gtk::PACK_EXPAND_WIDGET);
-        column->set_renderer (*renderer, model_column);
-        column->set_resizable ();
-        column->set_title (title);
-
-        return *column;
-    }
-}
-
-ImportErrorDialog::ImportErrorDialog (Gtk::Window &parent) :
-    Gtk::MessageDialog (parent, _("Import Error"), false,
-                        Gtk::MESSAGE_ERROR),
-
-    _has_errors (false),
-    model (Gtk::ListStore::create (Columns::instance ())),
-    view (model)
-{
-    set_secondary_text (_("Some files could not be imported."));
-    set_resizable (true);
-    set_title (_("Import Error"));
-
-    view.append_column (make_column (_("URI"),
-                                     Columns::instance ().uri));
-    view.append_column (make_column (_("Error message"),
-                                     Columns::instance ().message));
-
-    // Add things to vbox
-    Gtk::Box *vbox = get_content_area ();
-    Gtk::ScrolledWindow *scrolled = manage (new Gtk::ScrolledWindow ());
-    scrolled->set_min_content_width (400);
-    scrolled->set_min_content_height (200);
-    scrolled->add (view);
-
-    vbox->pack_start (*scrolled, Gtk::PACK_EXPAND_WIDGET);
-
-    scrolled->show_all ();
-
-    // Set default size to prop window open
-    set_default_size (600, -1);
-}
-
-void ImportErrorDialog::add_error (const Glib::RefPtr<Gio::File> &file,
-                             const Glib::ustring &message)
-{
-    auto iter = model->append ();
-    iter->set_value (Columns::instance ().uri, file->get_uri ());
-    iter->set_value (Columns::instance ().message, message);
-
-    _has_errors = true;
 }
 
 
