@@ -1,3 +1,6 @@
+#include <unordered_set>
+#include <queue>
+
 #include <autosprintf.h>
 
 #include <glibmm/i18n.h>
@@ -6,32 +9,96 @@
 #include <imgpack/logger.hh>
 
 using ImgPack::PixbufLoader;
+using ImgPack::StatusClient;
 
-PixbufLoader::PixbufLoader (StatusClient::Ptr status) :
+namespace {
+    class PixbufLoaderImpl :
+        public PixbufLoader,
+        public nihpp::SharedPtrCreator<PixbufLoaderImpl>
+    {
+    public:
+        using nihpp::SharedPtrCreator<PixbufLoaderImpl>::Ptr;
+        using nihpp::SharedPtrCreator<PixbufLoaderImpl>::WPtr;
+        using nihpp::SharedPtrCreator<PixbufLoaderImpl>::create;
+
+        PixbufLoaderImpl (const std::shared_ptr<StatusClient> &status);
+        virtual ~PixbufLoaderImpl () {}
+
+        virtual void enqueue (const Glib::RefPtr<Gio::File> &file);
+        virtual void start ();
+        virtual void abort ();
+
+        virtual const std::list<std::shared_ptr<Result> > &results () const
+        {return _results;}
+
+        virtual sigc::connection
+        connect_signal_finish (const sigc::slot<void> &slot);
+
+        virtual sigc::connection
+        connect_signal_abort (const sigc::slot<void> &slot);
+
+    private:
+        StatusClient::Ptr status;
+        sigc::signal<void> finish;
+        sigc::signal<void> aborted;
+
+        Glib::Thread *worker;
+        Glib::Dispatcher thread_finish;
+        Glib::Dispatcher progress;
+
+        guint status_context;
+
+        Glib::Mutex mutex;
+        std::queue<Glib::RefPtr<Gio::File> > unprocessed;
+        std::list<std::shared_ptr<Result> > _results;
+
+        std::unordered_set<std::string> visited;
+
+        Glib::RefPtr<Gio::Cancellable> cancellable;
+
+        // private functions
+        void _worker ();
+        void testcancelled ();
+        Glib::RefPtr<Gio::File> get_next_unprocessed ();
+        void recurse_file (const Glib::RefPtr<Gio::File> &file);
+        void load_pixbuf (const Glib::RefPtr<Gio::File> &file);
+
+        void on_thread_finish ();
+        void on_progress ();
+    };
+}
+
+// static
+PixbufLoader::Ptr PixbufLoader::create (const StatusClient::Ptr &status)
+{
+    return PixbufLoaderImpl::create (status);
+}
+
+PixbufLoaderImpl::PixbufLoaderImpl (const StatusClient::Ptr &status) :
     status (status),
     worker (nullptr),
     status_context (status->statusbar ().get_context_id ("PixbufLoader")),
     cancellable (Gio::Cancellable::create ())
 {
     thread_finish.connect (sigc::mem_fun (*this,
-                                          &PixbufLoader::on_thread_finish));
-    progress.connect (sigc::mem_fun (*this, &PixbufLoader::on_progress));
+                                          &PixbufLoaderImpl::on_thread_finish));
+    progress.connect (sigc::mem_fun (*this, &PixbufLoaderImpl::on_progress));
 }
 
-void PixbufLoader::enqueue (const Glib::RefPtr<Gio::File> &file)
+void PixbufLoaderImpl::enqueue (const Glib::RefPtr<Gio::File> &file)
 {
     unprocessed.push (file);
 }
 
-void PixbufLoader::start ()
+void PixbufLoaderImpl::start ()
 {
     g_assert (!worker);
 
     worker = Glib::Thread::create
-        (sigc::mem_fun (*this, &PixbufLoader::_worker), true);
+        (sigc::mem_fun (*this, &PixbufLoaderImpl::_worker), true);
 }
 
-void PixbufLoader::abort ()
+void PixbufLoaderImpl::abort ()
 {
     if (!worker)
         return;
@@ -41,6 +108,19 @@ void PixbufLoader::abort ()
 
     aborted ();
 }
+
+sigc::connection
+PixbufLoaderImpl::connect_signal_finish (const sigc::slot<void> &slot)
+{
+    return finish.connect (slot);
+}
+
+sigc::connection
+PixbufLoaderImpl::connect_signal_abort (const sigc::slot<void> &slot)
+{
+    return aborted.connect (slot);
+}
+
 
 namespace {
     struct CleanupHelper
@@ -53,7 +133,7 @@ namespace {
     };
 }
 
-Glib::RefPtr<Gio::File> PixbufLoader::get_next_unprocessed ()
+Glib::RefPtr<Gio::File> PixbufLoaderImpl::get_next_unprocessed ()
 {
     Glib::Mutex::Lock l (mutex);
 
@@ -66,7 +146,7 @@ Glib::RefPtr<Gio::File> PixbufLoader::get_next_unprocessed ()
     return retval;
 }
 
-void PixbufLoader::_worker ()
+void PixbufLoaderImpl::_worker ()
 {
     CleanupHelper cleanup (thread_finish);
 
@@ -118,13 +198,13 @@ void PixbufLoader::_worker ()
     }
 }
 
-void PixbufLoader::testcancelled ()
+void PixbufLoaderImpl::testcancelled ()
 {
     if (cancellable->is_cancelled ())
         throw Glib::Thread::Exit ();
 }
 
-void PixbufLoader::recurse_file (const Glib::RefPtr<Gio::File> &file)
+void PixbufLoaderImpl::recurse_file (const Glib::RefPtr<Gio::File> &file)
 {
     // Enqueue all children to the back (BFS)
     Glib::RefPtr<Gio::FileEnumerator> fe =
@@ -143,7 +223,7 @@ void PixbufLoader::recurse_file (const Glib::RefPtr<Gio::File> &file)
     }
 }
 
-void PixbufLoader::load_pixbuf (const Glib::RefPtr<Gio::File> &file)
+void PixbufLoaderImpl::load_pixbuf (const Glib::RefPtr<Gio::File> &file)
 {
     try {
         auto pixbuf =
@@ -165,7 +245,7 @@ void PixbufLoader::load_pixbuf (const Glib::RefPtr<Gio::File> &file)
     progress ();
 }
 
-void PixbufLoader::on_thread_finish ()
+void PixbufLoaderImpl::on_thread_finish ()
 {
     if (!worker)                // This can happen because abort() was called
         return;
@@ -176,7 +256,7 @@ void PixbufLoader::on_thread_finish ()
     finish ();
 }
 
-void PixbufLoader::on_progress ()
+void PixbufLoaderImpl::on_progress ()
 {
     int unprocessed_size = unprocessed.size ();
     int results_size = _results.size ();

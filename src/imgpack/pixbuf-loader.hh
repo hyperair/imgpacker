@@ -1,9 +1,6 @@
 #ifndef _IMGPACK_PIXBUF_LOADER_HH
 #define _IMGPACK_PIXBUF_LOADER_HH
 
-#include <queue>
-#include <unordered_set>
-
 #include <nihpp/sharedptrcreator.hh>
 #include <gtkmm.h>
 
@@ -12,62 +9,30 @@ namespace ImgPack
     class MainWindow;
     class StatusClient;
 
-    class PixbufLoader :
-        public nihpp::SharedPtrCreator<PixbufLoader>,
-        public sigc::trackable
+    class PixbufLoader
     {
-    private:
+    public:
         class Result;
 
-    public:
-        PixbufLoader (std::shared_ptr<StatusClient> status);
-        ~PixbufLoader () {abort ();}
+        typedef std::shared_ptr<PixbufLoader> Ptr;
+        typedef std::weak_ptr<PixbufLoader> WPtr;
+        static Ptr create (const std::shared_ptr<StatusClient> &status);
 
-        void enqueue (const Glib::RefPtr<Gio::File> &file);
-        void start ();
-        void abort ();
+        PixbufLoader () {}
+        PixbufLoader (const PixbufLoader &) = delete;
+        virtual ~PixbufLoader() {}
 
-        const std::list<std::shared_ptr<Result> > &results () {return _results;}
+        virtual void enqueue (const Glib::RefPtr<Gio::File> &file) = 0;
+        virtual void start () = 0;
+        virtual void abort () = 0;
 
-        sigc::connection connect_signal_finish (const sigc::slot<void> &slot)
-        {
-            return finish.connect (slot);
-        }
+        virtual const std::list<std::shared_ptr<Result> > &results () const = 0;
 
-        sigc::connection connect_signal_abort (const sigc::slot<void> &slot)
-        {
-            return aborted.connect (slot);
-        }
+        virtual sigc::connection
+        connect_signal_finish (const sigc::slot<void> &slot) = 0;
 
-    private:
-        std::shared_ptr<StatusClient> status;
-        sigc::signal<void> finish;
-        sigc::signal<void> aborted;
-
-        Glib::Thread *worker;
-
-        Glib::Dispatcher thread_finish;
-        Glib::Dispatcher progress;
-
-        guint status_context;
-
-        Glib::Mutex mutex;
-        std::queue<Glib::RefPtr<Gio::File> > unprocessed;
-        std::list<std::shared_ptr<Result> > _results;
-
-        std::unordered_set<std::string> visited;
-
-        Glib::RefPtr<Gio::Cancellable> cancellable;
-
-        // private functions
-        void _worker ();
-        void testcancelled ();
-        Glib::RefPtr<Gio::File> get_next_unprocessed ();
-        void recurse_file (const Glib::RefPtr<Gio::File> &file);
-        void load_pixbuf (const Glib::RefPtr<Gio::File> &file);
-
-        void on_thread_finish ();
-        void on_progress ();
+        virtual sigc::connection
+        connect_signal_abort (const sigc::slot<void> &slot) = 0;
     };
 
 
