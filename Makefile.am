@@ -12,6 +12,8 @@ imgpacker_SOURCES =				\
 	src/imgpack/thread-pool.cc		\
 	src/imgpack/pixbuf-loader.hh		\
 	src/imgpack/pixbuf-loader.cc		\
+	src/imgpack/collage-generator.hh	\
+	src/imgpack/collage-generator.cc	\
 	src/main.cc
 imgpacker_CXXFLAGS =						\
 	$(CXX0X_FLAG)						\

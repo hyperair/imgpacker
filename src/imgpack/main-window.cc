@@ -5,6 +5,7 @@
 #include <imgpack/application.hh>
 #include <imgpack/image-list.hh>
 #include <imgpack/pixbuf-loader.hh>
+#include <imgpack/collage-generator.hh>
 #include <imgpack/logger.hh>
 
 using ImgPack::Application;
@@ -91,6 +92,7 @@ namespace {
         Gtk::ProgressBar &progressbar () {return status.progressbar;}
 
         PixbufLoader::Ptr            pixbuf_loader;
+        CollageGenerator::Ptr        collage_generator;
 
         // callbacks
         void on_add_clicked ();
