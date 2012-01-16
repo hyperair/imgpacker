@@ -176,7 +176,6 @@ namespace {
         struct Columns;
         bool _has_errors;
         Glib::RefPtr<Gtk::ListStore> model;
-        Gtk::TreeView view;
 
     public:
         ImportErrorDialog (Gtk::Window &parent);
@@ -233,16 +232,16 @@ ImportErrorDialog::ImportErrorDialog (Gtk::Window &parent) :
                         Gtk::MESSAGE_ERROR),
 
     _has_errors (false),
-    model (Gtk::ListStore::create (Columns::instance ())),
-    view (model)
+    model (Gtk::ListStore::create (Columns::instance ()))
 {
     set_secondary_text (_("Some files could not be imported."));
     set_resizable (true);
     set_title (_("Import Error"));
 
-    view.append_column
+    Gtk::TreeView *view = manage (new Gtk::TreeView (model));
+    view->append_column
         (make_selectable_text_column (_("URI"), Columns::instance ().uri));
-    view.append_column
+    view->append_column
         (make_selectable_text_column (_("Error message"),
                                       Columns::instance ().message));
 
@@ -251,7 +250,7 @@ ImportErrorDialog::ImportErrorDialog (Gtk::Window &parent) :
     Gtk::ScrolledWindow *scrolled = manage (new Gtk::ScrolledWindow ());
     scrolled->set_min_content_width (400);
     scrolled->set_min_content_height (200);
-    scrolled->add (view);
+    scrolled->add (*view);
 
     vbox->pack_start (*scrolled, Gtk::PACK_EXPAND_WIDGET);
 
