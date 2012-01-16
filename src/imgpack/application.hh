@@ -18,7 +18,7 @@ namespace ImgPack
         void show_about ();
 
     private:
-        MainWindow       main_window;
+        MainWindow::Ptr  main_window;
         Gtk::AboutDialog about_dialog;
     };
 }

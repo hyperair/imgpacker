@@ -10,7 +10,7 @@ using ImgPack::Application;
 Application::Application (int &argc, char **&argv) :
     ::Gtk::Main (argc, argv),
 
-    main_window (*this)
+    main_window (MainWindow::create (*this))
 {
     Glib::set_application_name (_("ImgPacker Collage Creator"));
 
@@ -24,7 +24,7 @@ Application::Application (int &argc, char **&argv) :
 
 void Application::run ()
 {
-    Gtk::Main::run (main_window);
+    Gtk::Main::run (*main_window);
 }
 
 void Application::show_about ()
