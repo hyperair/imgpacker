@@ -22,7 +22,7 @@ namespace {
         using nihpp::SharedPtrCreator<PixbufLoaderImpl>::create;
 
         PixbufLoaderImpl (const std::shared_ptr<StatusClient> &status);
-        virtual ~PixbufLoaderImpl () {}
+        virtual ~PixbufLoaderImpl () {abort ();}
 
         virtual void enqueue (const Glib::RefPtr<Gio::File> &file);
         virtual void start ();
@@ -100,6 +100,8 @@ void PixbufLoaderImpl::start ()
 
 void PixbufLoaderImpl::abort ()
 {
+    LOG(info) << "Aborting pixbuf loading process...";
+
     if (!worker)
         return;
 
@@ -227,7 +229,9 @@ void PixbufLoaderImpl::load_pixbuf (const Glib::RefPtr<Gio::File> &file)
 {
     try {
         auto pixbuf =
-            Gdk::Pixbuf::create_from_stream (file->read ());
+            Gdk::Pixbuf::create_from_stream (file->read (), cancellable);
+
+        testcancelled ();
 
         Glib::Mutex::Lock l (mutex);
 
@@ -236,6 +240,8 @@ void PixbufLoaderImpl::load_pixbuf (const Glib::RefPtr<Gio::File> &file)
         LOG(info) << "Successfully loaded pixbuf from " << file->get_uri ();
 
     } catch (Glib::Exception &e) {
+        testcancelled ();
+
         _results.push_back (Result::create (file, e));
 
         LOG(info) << "Could not load pixbuf from " << file->get_uri () << ": "
