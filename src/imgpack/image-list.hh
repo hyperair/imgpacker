@@ -1,8 +1,6 @@
 #ifndef IMGPACK_IMAGE_LIST_HH
 #define IMGPACK_IMAGE_LIST_HH
 
-#include <memory>
-#include <future>
 #include <gtkmm.h>
 
 namespace ImgPack

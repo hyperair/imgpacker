@@ -1,5 +1,6 @@
 #include <memory>
 #include <glibmm/i18n.h>
+#include <nihpp/singleton.hh>
 #include <imgpack/main-window.hh>
 #include <imgpack/application.hh>
 
