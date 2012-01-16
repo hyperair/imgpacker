@@ -100,10 +100,10 @@ void PixbufLoaderImpl::start ()
 
 void PixbufLoaderImpl::abort ()
 {
-    LOG(info) << "Aborting pixbuf loading process...";
-
     if (!worker)
         return;
+
+    LOG(info) << "Aborting pixbuf loading process...";
 
     cancellable->cancel ();
     worker->join ();
