@@ -108,7 +108,7 @@ void PixbufLoaderImpl::abort ()
     cancellable->cancel ();
     worker->join ();
 
-    aborted ();
+    Glib::signal_idle ().connect_once (aborted);
 }
 
 sigc::connection
@@ -259,7 +259,7 @@ void PixbufLoaderImpl::on_thread_finish ()
     worker->join ();
     worker = nullptr;
 
-    finish ();
+    Glib::signal_idle ().connect_once (finish);
 }
 
 void PixbufLoaderImpl::on_progress ()
