@@ -1,5 +1,6 @@
 #include <iostream>
 #include <nihpp/singleton.hh>
+#include <nihpp/sigc++/fixfunctors.hh>
 
 #include <imgpack/image-list.hh>
 #include <imgpack/main-window.hh>
@@ -91,4 +92,17 @@ void ImageList::remove_selected ()
 
     for (Gtk::TreeIter &i : iters)
         model->erase (i);
+}
+
+std::list<Glib::RefPtr<Gdk::Pixbuf> > ImageList::pixbufs ()
+{
+    std::list<Glib::RefPtr<Gdk::Pixbuf> > retval;
+
+    model->foreach_iter ([&retval] (const Gtk::TreeIter &i) -> bool {
+            retval.push_back ((*i)[cols ().thumbnail]);
+
+            return false;
+        });
+
+    return retval;
 }
