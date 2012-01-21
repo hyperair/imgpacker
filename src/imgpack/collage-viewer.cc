@@ -3,11 +3,35 @@
 #include <imgpack/bin-packer.hh>
 #include <imgpack/logger.hh>
 
-using namespace ImgPack;
+namespace ip = ImgPack;
 
 namespace {
+    class PixbufRectangle : public ip::Rectangle
+    {
+    public:
+        PixbufRectangle (const Glib::RefPtr<Gdk::Pixbuf> &pixbuf) :
+            _pixbuf (pixbuf),
+            _width (pixbuf->get_width ()),
+            _height (pixbuf->get_height ())
+        {}
+
+        virtual ~PixbufRectangle (){}
+
+        virtual int width () {return _width;}
+        virtual int height () {return _height;}
+
+        virtual int max_width () {return _pixbuf->get_width ();}
+        virtual int max_height () {return _pixbuf->get_height ();}
+
+    private:
+        Glib::RefPtr<Gdk::Pixbuf> _pixbuf;
+        int _width;
+        int _height;
+    };
+
+
     class CollageViewerImpl :
-        public CollageViewer,
+        public ip::CollageViewer,
         public nihpp::SharedPtrCreator<CollageViewerImpl>
     {
     public:
@@ -26,11 +50,11 @@ namespace {
 
     private:
         PixbufList pixbufs;
-        BinPacker::Ptr packer;
+        ip::BinPacker::Ptr packer;
     };
 }
 
-CollageViewer::Ptr CollageViewer::create ()
+ip::CollageViewer::Ptr ip::CollageViewer::create ()
 {
     return CollageViewerImpl::create ();
 }
@@ -48,6 +72,8 @@ void CollageViewerImpl::refresh ()
 
 void CollageViewerImpl::reset ()
 {
+    packer.reset ();
+    pixbufs.clear ();
 }
 
 bool CollageViewerImpl::on_draw (const Cairo::RefPtr<Cairo::Context> &)
