@@ -45,7 +45,7 @@ namespace ImgPack
         virtual void start () = 0;
         virtual void stop () = 0;
 
-        virtual void target_aspect_ratio (double aspect_ratio) = 0;
+        virtual void target_aspect (double aspect_ratio) = 0;
         virtual void source_rectangles (const RectangleList &rectangles);
 
         virtual Rectangle::Ptr result ();
