@@ -14,6 +14,8 @@ imgpacker_SOURCES =				\
 	src/imgpack/pixbuf-loader.cc		\
 	src/imgpack/collage-viewer.hh		\
 	src/imgpack/collage-viewer.cc		\
+	src/imgpack/bin-packer.hh		\
+	src/imgpack/bin-packer.cc		\
 	src/main.cc
 imgpacker_CXXFLAGS =						\
 	$(CXX0X_FLAG)						\
