@@ -93,6 +93,30 @@ namespace {
         else
             return horizontal;
     }
+
+
+    class BinPackerImpl :
+        public ip::BinPacker,
+        public nihpp::SharedPtrCreator<BinPackerImpl>
+    {
+    public:
+        typedef std::shared_ptr<BinPackerImpl> Ptr;
+        using nihpp::SharedPtrCreator<BinPackerImpl>::create;
+
+        BinPackerImpl ();
+        virtual ~BinPackerImpl () {}
+
+        virtual void target_aspect (double aspect_ratio);
+        virtual void source_rectangles (RectangleList rectangles);
+
+        virtual ip::Rectangle::Ptr result ();
+
+    private:
+        virtual void run ();
+
+        double aspect_ratio;
+        RectangleList rectangles;
+    };
 }
 
 CompositeRectangle::CompositeRectangle (ip::Rectangle::Ptr rect1,
@@ -210,4 +234,54 @@ int VCompositeRectangle::max_width ()
         retval = std::min (retval, i->max_width ());
 
     return retval;
+}
+
+
+// BinPacker definitions
+ip::BinPacker::Ptr ip::BinPacker::create ()
+{
+    return BinPackerImpl::create ();
+}
+
+BinPackerImpl::BinPackerImpl ()
+{
+}
+
+void BinPackerImpl::target_aspect (double aspect_ratio)
+{
+    this->aspect_ratio = aspect_ratio;
+}
+
+void BinPackerImpl::source_rectangles (RectangleList rectangles)
+{
+    this->rectangles = std::move (rectangles);
+}
+
+void BinPackerImpl::run ()
+{
+    // Hack: Loop until only one rectangle is left
+    // This can be replaced with rectangles.size () > 1 with a new gcc
+    while (++rectangles.begin () != rectangles.end ()) {
+        testcancelled ();
+
+        using ip::Rectangle;
+        Rectangle::Ptr rect1 = rectangles.front ();
+        rectangles.pop_front ();
+
+        Rectangle::Ptr rect2 = rectangles.front ();
+        rectangles.pop_front ();
+
+        Rectangle::Ptr result_rect = combine (rect1, rect2, aspect_ratio);
+        rectangles.push_back (result_rect);
+    }
+}
+
+ip::Rectangle::Ptr BinPackerImpl::result ()
+{
+    int nrectangles = rectangles.size ();
+
+    if (nrectangles != 1)
+        return ip::Rectangle::Ptr ();
+
+    return rectangles.front ();
 }
