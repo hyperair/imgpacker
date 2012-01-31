@@ -16,6 +16,8 @@ imgpacker_SOURCES =				\
 	src/imgpack/collage-viewer.cc		\
 	src/imgpack/bin-packer.hh		\
 	src/imgpack/bin-packer.cc		\
+	src/imgpack/async-operation.hh		\
+	src/imgpack/async-operation.cc		\
 	src/main.cc
 imgpacker_CXXFLAGS =						\
 	$(CXX0X_FLAG)						\

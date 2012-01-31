@@ -4,12 +4,14 @@
 #include <nihpp/sharedptrcreator.hh>
 #include <gtkmm.h>
 
+#include <imgpack/async-operation.hh>
+
 namespace ImgPack
 {
     class MainWindow;
     class StatusClient;
 
-    class PixbufLoader
+    class PixbufLoader : public AsyncOperation
     {
     public:
         class Result;
@@ -18,21 +20,13 @@ namespace ImgPack
         typedef std::weak_ptr<PixbufLoader> WPtr;
         static Ptr create (const std::shared_ptr<StatusClient> &status);
 
-        PixbufLoader () {}
+        PixbufLoader () : AsyncOperation ("PixbufLoader") {}
         PixbufLoader (const PixbufLoader &) = delete;
         virtual ~PixbufLoader() {}
 
         virtual void enqueue (const Glib::RefPtr<Gio::File> &file) = 0;
-        virtual void start () = 0;
-        virtual void abort () = 0;
 
         virtual const std::list<std::shared_ptr<Result> > &results () const = 0;
-
-        virtual sigc::connection
-        connect_signal_finish (const sigc::slot<void> &slot) = 0;
-
-        virtual sigc::connection
-        connect_signal_abort (const sigc::slot<void> &slot) = 0;
     };
 
 
