@@ -24,7 +24,10 @@ namespace {
         virtual ~PixbufRectangle (){}
 
         virtual int width () {return _width;}
+        virtual void width (int);
+
         virtual int height () {return _height;}
+        virtual void height (int);
 
         virtual int max_width () {return _pixbuf->get_width ();}
         virtual int max_height () {return _pixbuf->get_height ();}
@@ -49,18 +52,41 @@ namespace {
         CollageViewerImpl () {}
         virtual ~CollageViewerImpl () {}
 
-        virtual void set_source_pixbufs (const PixbufList &pixbufs);
+        virtual void set_source_pixbufs (PixbufList pixbufs);
 
         virtual void refresh ();
         virtual void reset ();
-
-        virtual bool on_draw (const Cairo::RefPtr <Cairo::Context> &cr);
 
     private:
         PixbufList pixbufs;
         ip::BinPacker::Ptr packer;
         ip::Rectangle::Ptr collage;
+
+        virtual bool on_draw (const Cairo::RefPtr <Cairo::Context> &cr);
+        virtual void on_binpack_finish ();
     };
+}
+
+void PixbufRectangle::width (int new_width)
+{
+    if (new_width == width ())
+        return;
+
+    g_assert (new_width <= max_width ());
+
+    _height = new_width / aspect_ratio ();
+    _width = new_width;
+}
+
+void PixbufRectangle::height (int new_height)
+{
+    if (new_height <= max_height ())
+        return;
+
+    g_assert (new_height <= max_height ());
+
+    _width = new_height * aspect_ratio ();
+    _height = new_height;
 }
 
 ip::CollageViewer::Ptr ip::CollageViewer::create ()
@@ -69,14 +95,26 @@ ip::CollageViewer::Ptr ip::CollageViewer::create ()
 }
 
 void
-CollageViewerImpl::set_source_pixbufs (const PixbufList &)
+CollageViewerImpl::set_source_pixbufs (PixbufList pixbufs)
 {
-    // Use algorithm to generate pixbufs
+    this->pixbufs = std::move (pixbufs);
+
     refresh ();
 }
 
 void CollageViewerImpl::refresh ()
 {
+    std::list<ip::Rectangle::Ptr> rectangles;
+
+    for (auto pixbuf : pixbufs)
+        rectangles.push_back (PixbufRectangle::create (pixbuf));
+
+    packer = ip::BinPacker::create ();
+    packer->connect_signal_finish
+        (sigc::mem_fun (*this, &CollageViewerImpl::on_binpack_finish));
+    packer->source_rectangles (std::move (rectangles));
+
+    packer->start ();
 }
 
 void CollageViewerImpl::reset ()
@@ -147,4 +185,10 @@ bool CollageViewerImpl::on_draw (const Cairo::RefPtr<Cairo::Context> &cr)
     }
 
     return true;
+}
+
+void CollageViewerImpl::on_binpack_finish ()
+{
+    collage = packer->result ();
+    queue_draw ();
 }

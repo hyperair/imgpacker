@@ -19,7 +19,7 @@ namespace ImgPack
 
         virtual void
         set_source_pixbufs
-        (const std::list<Glib::RefPtr<Gdk::Pixbuf> > &pixbufs) = 0;
+        (std::list<Glib::RefPtr<Gdk::Pixbuf> > pixbufs) = 0;
 
         virtual void refresh () = 0;
         virtual void reset () = 0;
