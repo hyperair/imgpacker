@@ -19,7 +19,10 @@ namespace {
             _pixbuf (pixbuf),
             _width (pixbuf->get_width ()),
             _height (pixbuf->get_height ())
-        {}
+        {
+            LOG(info) << "Constructed PixbufRectangle with width: [" << _width
+                      << "] and height: [" << _height << "]";
+        }
 
         virtual ~PixbufRectangle (){}
 
@@ -156,12 +159,15 @@ bool CollageViewerImpl::on_draw (const Cairo::RefPtr<Cairo::Context> &cr)
 
             cr->save ();
 
-            Gdk::Cairo::set_source_pixbuf (cr, pixbufrect->pixbuf (), 0, 0);
-            cr->translate (x, y);
-            cr->scale (double (pixbufrect->width ()) /
-                       pixbufrect->max_width (),
-                       double (pixbufrect->height ()) /
-                       pixbufrect->max_height ());
+            Glib::RefPtr<Gdk::Pixbuf> scaled =
+                pixbufrect->pixbuf ()->scale_simple (pixbufrect->width (),
+                                                     pixbufrect->height (),
+                                                     Gdk::INTERP_BILINEAR);
+            Gdk::Cairo::set_source_pixbuf (cr, scaled, x, y);
+            LOG(info) << "Drawing pixbuf " << pixbufrect->width ()
+                      << ", " << pixbufrect->height ()
+                      << " at " << x << ", " << y;
+
             cr->paint ();
 
             cr->restore ();
@@ -170,12 +176,17 @@ bool CollageViewerImpl::on_draw (const Cairo::RefPtr<Cairo::Context> &cr)
             for (auto i : children) {
                 drawq.push ({i, x, y});
 
-                switch (i->orientation ()) {
+                switch (rect.rect->orientation ()) {
                 case ip::Rectangle::HORIZONTAL:
                     x += i->width ();
+                    break;
 
                 case ip::Rectangle::VERTICAL:
                     y += i->height ();
+                    break;
+
+                case ip::Rectangle::INVALID:
+                    break;
 
                 default:
                     g_assert_not_reached ();
