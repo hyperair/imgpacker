@@ -175,13 +175,7 @@ int HCompositeRectangle::max_height ()
 
 int HCompositeRectangle::max_width ()
 {
-    int maxh = max_height ();
-    int totalw = 0;
-
-    for (auto i : _children)
-        totalw += maxh * i->aspect_ratio ();
-
-    return totalw;
+    return aspect_ratio () * max_height ();
 }
 
 
@@ -221,13 +215,7 @@ void VCompositeRectangle::height (int new_height)
 
 int VCompositeRectangle::max_height ()
 {
-    int maxw = max_width ();
-    int totalh = 0;
-
-    for (auto i : _children)
-        totalh += maxw / i->aspect_ratio ();
-
-    return totalh;
+    return max_width () / aspect_ratio ();
 }
 
 int VCompositeRectangle::max_width ()
