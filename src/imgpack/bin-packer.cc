@@ -3,6 +3,7 @@
 #include <limits>
 
 #include <nihpp/sharedptrcreator.hh>
+#include <autosprintf.h>
 
 #include <imgpack/bin-packer.hh>
 #include <imgpack/logger.hh>
@@ -72,27 +73,34 @@ namespace {
                                      ip::Rectangle::Ptr rect2,
                                      double target_aspect)
     {
-        LOG(info) << "Combining rectangles of aspect ratios: ["
-                  << rect1->aspect_ratio () << "] and ["
-                  << rect2->aspect_ratio () << "]";
-        CompositeRectangle::Ptr vertical =
-            VCompositeRectangle::create (rect1, rect2);
+        LOG(info) << "Combining rectangles: "
+                  << gnu::autosprintf ("%fx%f",
+                                       rect1->width (), rect1->height ())
+                  << " and "
+                  << gnu::autosprintf ("%fx%f",
+                                       rect2->width (), rect2->height ());
 
-        CompositeRectangle::Ptr horizontal =
-            HCompositeRectangle::create (rect1, rect2);
+
+        double rect1_aspect = rect1->aspect_ratio ();
+        double rect2_aspect = rect2->aspect_ratio ();
+
+        double vertical_ratio =
+            rect1_aspect * rect2_aspect / (rect1_aspect + rect2_aspect);
+
+        double horizontal_ratio = rect1_aspect + rect2_aspect;
 
         double vertical_ratiodist =
-            std::abs (target_aspect - vertical->aspect_ratio ());
+            std::abs (target_aspect - vertical_ratio);
 
         double horizontal_ratiodist =
-            std::abs (target_aspect - horizontal->aspect_ratio ());
+            std::abs (target_aspect - horizontal_ratio);
 
 
         if (vertical_ratiodist < horizontal_ratiodist)
-            return vertical;
+            return VCompositeRectangle::create (rect1, rect2);
 
         else
-            return horizontal;
+            return HCompositeRectangle::create (rect1, rect2);
     }
 
 
@@ -134,6 +142,8 @@ HCompositeRectangle::HCompositeRectangle (ip::Rectangle::Ptr rect1,
     double common_height = std::min (rect1->max_height (),
                                      rect2->max_height ());
 
+    LOG(info) << "Equalizing height to " << common_height;
+
     rect1->height (common_height);
     rect2->height (common_height);
 }
@@ -150,6 +160,9 @@ double HCompositeRectangle::width ()
 
 void HCompositeRectangle::height (double new_height)
 {
+    LOG(info) << "Scaling composite by height: "
+              << height () << " -> " << new_height;
+
     for (auto i : _children)
         i->height (new_height);
 }
