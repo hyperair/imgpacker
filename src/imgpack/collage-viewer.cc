@@ -72,10 +72,14 @@ namespace {
 
 void PixbufRectangle::width (double new_width)
 {
-    if (new_width == width ())
+    if (std::abs (new_width - width ()) < 0.001)
         return;
 
-    g_assert (new_width <= max_width ());
+    if (new_width > max_width ()) {
+        LOG(error) << "Attempting to upscale pixbuf by width: "
+                   << max_width () << " -> " << new_width;
+        g_assert_not_reached ();
+    }
 
     _height = new_width / aspect_ratio ();
     _width = new_width;
@@ -83,10 +87,14 @@ void PixbufRectangle::width (double new_width)
 
 void PixbufRectangle::height (double new_height)
 {
-    if (new_height <= max_height ())
+    if (std::abs (new_height <= max_height ()) < 0.001)
         return;
 
-    g_assert (new_height <= max_height ());
+    if (new_height > max_height ()) {
+        LOG(error) << "Attempting to upscale pixbuf by height: "
+                   << max_height () << " -> " << new_height;
+        g_assert_not_reached ();
+    }
 
     _width = new_height * aspect_ratio ();
     _height = new_height;
