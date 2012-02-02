@@ -28,7 +28,7 @@ namespace ImgPack
         // overridden if Rectangle has children
         virtual Orientation orientation () {return INVALID;}
         virtual std::vector<Ptr> children () {return {};}
-        double aspect_ratio () {return width () / height ();}
+        double aspect_ratio () {return double (width ()) / height ();}
 
     protected:
         Rectangle (){}
