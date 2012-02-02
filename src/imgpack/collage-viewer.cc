@@ -138,9 +138,9 @@ namespace {
     struct RectangleCoord
     {
         ip::Rectangle::Ptr rect;
-        int x, y;
+        double x, y;
 
-        RectangleCoord (ip::Rectangle::Ptr rect, int x, int y) :
+        RectangleCoord (ip::Rectangle::Ptr rect, double x, double y) :
             rect (rect), x (x), y (y) {}
     };
 }
@@ -157,8 +157,8 @@ bool CollageViewerImpl::on_draw (const Cairo::RefPtr<Cairo::Context> &cr)
         RectangleCoord rect = drawq.front ();
         drawq.pop ();
 
-        int x = rect.x;
-        int y = rect.y;
+        double x = rect.x;
+        double y = rect.y;
 
         auto children = rect.rect->children ();
         if (children.empty ()) {
@@ -168,8 +168,9 @@ bool CollageViewerImpl::on_draw (const Cairo::RefPtr<Cairo::Context> &cr)
             cr->save ();
 
             Glib::RefPtr<Gdk::Pixbuf> scaled =
-                pixbufrect->pixbuf ()->scale_simple (pixbufrect->width (),
-                                                     pixbufrect->height (),
+                pixbufrect->pixbuf ()->scale_simple (pixbufrect->width () + 0.5,
+                                                     pixbufrect->height ()
+                                                     + 0.5,
                                                      Gdk::INTERP_BILINEAR);
             Gdk::Cairo::set_source_pixbuf (cr, scaled, x, y);
             LOG(info) << "Drawing pixbuf " << pixbufrect->width ()
