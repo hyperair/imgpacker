@@ -16,19 +16,19 @@ namespace ImgPack
 
         virtual ~Rectangle () {}
 
-        virtual int width () = 0;
-        virtual void width (int) = 0;
+        virtual double width () = 0;
+        virtual void width (double) = 0;
 
-        virtual int height () = 0;
-        virtual void height (int) = 0;
+        virtual double height () = 0;
+        virtual void height (double) = 0;
 
-        virtual int max_width () = 0;
-        virtual int max_height () = 0;
+        virtual double max_width () = 0;
+        virtual double max_height () = 0;
 
         // overridden if Rectangle has children
         virtual Orientation orientation () {return INVALID;}
         virtual std::vector<Ptr> children () {return {};}
-        double aspect_ratio () {return double (width ()) / height ();}
+        double aspect_ratio () {return width () / height ();}
 
     protected:
         Rectangle (){}

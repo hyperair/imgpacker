@@ -33,19 +33,16 @@ namespace {
     public:
         HCompositeRectangle (Rectangle::Ptr rect1, Rectangle::Ptr rect2);
 
-        virtual int height () {return _children.front ()->height ();}
-        virtual int width ();
+        virtual double height () {return _children.front ()->height ();}
+        virtual double width ();
 
-        virtual void height (int new_height);
-        virtual void width (int new_width);
+        virtual void height (double new_height);
+        virtual void width (double new_width);
 
-        virtual int max_height ();
-        virtual int max_width ();
+        virtual double max_height ();
+        virtual double max_width ();
 
         virtual Orientation orientation () {return HORIZONTAL;}
-
-    private:
-        int _max_height;
     };
 
 
@@ -56,14 +53,14 @@ namespace {
     public:
         VCompositeRectangle (Rectangle::Ptr rect1, Rectangle::Ptr rect2);
 
-        virtual int height ();
-        virtual int width () {return _children.front ()->width ();}
+        virtual double height ();
+        virtual double width () {return _children.front ()->width ();}
 
-        virtual void height (int new_height);
-        virtual void width (int new_width);
+        virtual void height (double new_height);
+        virtual void width (double new_width);
 
-        virtual int max_height ();
-        virtual int max_width ();
+        virtual double max_height ();
+        virtual double max_width ();
 
         virtual Orientation orientation () {return VERTICAL;}
     };
@@ -134,16 +131,16 @@ HCompositeRectangle::HCompositeRectangle (ip::Rectangle::Ptr rect1,
                                           ip::Rectangle::Ptr rect2) :
     CompositeRectangle (rect1, rect2)
 {
-    int common_height = std::min (rect1->max_height (),
-                                  rect2->max_height ());
+    double common_height = std::min (rect1->max_height (),
+                                     rect2->max_height ());
 
     rect1->height (common_height);
     rect2->height (common_height);
 }
 
-int HCompositeRectangle::width ()
+double HCompositeRectangle::width ()
 {
-    int width = 0;
+    double width = 0;
 
     for (auto i : _children)
         width += i->width ();
@@ -151,21 +148,21 @@ int HCompositeRectangle::width ()
     return width;
 }
 
-void HCompositeRectangle::height (int new_height)
+void HCompositeRectangle::height (double new_height)
 {
     for (auto i : _children)
         i->height (new_height);
 }
 
-void HCompositeRectangle::width (int new_width)
+void HCompositeRectangle::width (double new_width)
 {
-    int new_height = new_width * aspect_ratio ();
+    double new_height = new_width / aspect_ratio ();
     height (new_height);
 }
 
-int HCompositeRectangle::max_height ()
+double HCompositeRectangle::max_height ()
 {
-    int retval = std::numeric_limits<int>::max ();
+    double retval = std::numeric_limits<double>::max ();
 
     for (auto i : _children)
         retval = std::min (retval, i->max_height ());
@@ -173,7 +170,7 @@ int HCompositeRectangle::max_height ()
     return retval;
 }
 
-int HCompositeRectangle::max_width ()
+double HCompositeRectangle::max_width ()
 {
     return aspect_ratio () * max_height ();
 }
@@ -184,16 +181,18 @@ VCompositeRectangle::VCompositeRectangle (ip::Rectangle::Ptr rect1,
                                           ip::Rectangle::Ptr rect2) :
     CompositeRectangle (rect1, rect2)
 {
-    int common_width = std::min (rect1->max_width (),
-                                  rect2->max_width ());
+    double common_width = std::min (rect1->max_width (),
+                                    rect2->max_width ());
+
+    LOG(info) << "Equalizing width to " << common_width;
 
     rect1->width (common_width);
     rect2->width (common_width);
 }
 
-int VCompositeRectangle::height ()
+double VCompositeRectangle::height ()
 {
-    int height = 0;
+    double height = 0;
 
     for (auto i : _children)
         height += i->height ();
@@ -201,26 +200,28 @@ int VCompositeRectangle::height ()
     return height;
 }
 
-void VCompositeRectangle::width (int new_width)
+void VCompositeRectangle::width (double new_width)
 {
+    LOG(info) << "Scaling composite by width: "
+              << width () << " -> " << new_width;
     for (auto i : _children)
         i->width (new_width);
 }
 
-void VCompositeRectangle::height (int new_height)
+void VCompositeRectangle::height (double new_height)
 {
-    int new_width = new_height * aspect_ratio ();
+    double new_width = new_height * aspect_ratio ();
     width (new_width);
 }
 
-int VCompositeRectangle::max_height ()
+double VCompositeRectangle::max_height ()
 {
     return max_width () / aspect_ratio ();
 }
 
-int VCompositeRectangle::max_width ()
+double VCompositeRectangle::max_width ()
 {
-    int retval = std::numeric_limits<int>::max ();
+    double retval = std::numeric_limits<double>::max ();
 
     for (auto i : _children)
         retval = std::min (retval, i->max_width ());

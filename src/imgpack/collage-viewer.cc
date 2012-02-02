@@ -26,21 +26,21 @@ namespace {
 
         virtual ~PixbufRectangle (){}
 
-        virtual int width () {return _width;}
-        virtual void width (int);
+        virtual double width () {return _width;}
+        virtual void width (double);
 
-        virtual int height () {return _height;}
-        virtual void height (int);
+        virtual double height () {return _height;}
+        virtual void height (double);
 
-        virtual int max_width () {return _pixbuf->get_width ();}
-        virtual int max_height () {return _pixbuf->get_height ();}
+        virtual double max_width () {return _pixbuf->get_width ();}
+        virtual double max_height () {return _pixbuf->get_height ();}
 
         Glib::RefPtr<Gdk::Pixbuf> pixbuf () {return _pixbuf;}
 
     private:
         Glib::RefPtr<Gdk::Pixbuf> _pixbuf;
-        int _width;
-        int _height;
+        double _width;
+        double _height;
     };
 
 
@@ -70,7 +70,7 @@ namespace {
     };
 }
 
-void PixbufRectangle::width (int new_width)
+void PixbufRectangle::width (double new_width)
 {
     if (new_width == width ())
         return;
@@ -81,7 +81,7 @@ void PixbufRectangle::width (int new_width)
     _width = new_width;
 }
 
-void PixbufRectangle::height (int new_height)
+void PixbufRectangle::height (double new_height)
 {
     if (new_height <= max_height ())
         return;
