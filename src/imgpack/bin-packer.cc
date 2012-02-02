@@ -5,6 +5,7 @@
 #include <nihpp/sharedptrcreator.hh>
 
 #include <imgpack/bin-packer.hh>
+#include <imgpack/logger.hh>
 
 namespace ip = ImgPack;
 
@@ -74,6 +75,9 @@ namespace {
                                      ip::Rectangle::Ptr rect2,
                                      double target_aspect)
     {
+        LOG(info) << "Combining rectangles of aspect ratios: ["
+                  << rect1->aspect_ratio () << "] and ["
+                  << rect2->aspect_ratio () << "]";
         CompositeRectangle::Ptr vertical =
             VCompositeRectangle::create (rect1, rect2);
 
@@ -243,7 +247,8 @@ ip::BinPacker::Ptr ip::BinPacker::create ()
     return BinPackerImpl::create ();
 }
 
-BinPackerImpl::BinPackerImpl ()
+BinPackerImpl::BinPackerImpl () :
+    aspect_ratio (210.0 / 297)
 {
 }
 
