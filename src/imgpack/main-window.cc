@@ -80,7 +80,7 @@ namespace {
         Gtk::HPaned                  main_pane;
 
         ImageList                    image_list;
-        CollageViewer::Ptr           viewer;
+        CollageViewer                viewer;
 
         StatusController             status;
         Gtk::Statusbar &statusbar () {return status.statusbar;}
@@ -304,9 +304,7 @@ MainWindow::Ptr MainWindow::create (Application &app)
 
 MainWindowImpl::MainWindowImpl (Application &app) :
     app (app),
-    uimgr (UIManager::create ()),
-
-    viewer (CollageViewer::create ())
+    uimgr (UIManager::create ())
 {
     add (main_vbox);
 
@@ -327,7 +325,7 @@ MainWindowImpl::MainWindowImpl (Application &app) :
     scrolled->set_min_content_width (image_list.get_icon_width () + 20);
 
     main_pane.pack1 (*scrolled, Gtk::SHRINK | Gtk::FILL);
-    main_pane.pack2 (*viewer, Gtk::EXPAND | Gtk::FILL);
+    main_pane.pack2 (viewer, Gtk::EXPAND | Gtk::FILL);
 
     // Prepare statusbar
     statusbar ().pack_end (progressbar (), Gtk::PACK_SHRINK);
@@ -427,7 +425,7 @@ void MainWindowImpl::on_add_clicked ()
 
 void MainWindowImpl::on_exec ()
 {
-    viewer->set_source_pixbufs (image_list.pixbufs ());
+    viewer.set_source_pixbufs (image_list.pixbufs ());
 }
 
 void MainWindowImpl::on_new_window ()

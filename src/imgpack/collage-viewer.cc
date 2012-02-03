@@ -42,32 +42,6 @@ namespace {
         double _width;
         double _height;
     };
-
-
-    class CollageViewerImpl :
-        public ip::CollageViewer,
-        public nihpp::SharedPtrCreator<CollageViewerImpl>
-    {
-    public:
-        using nihpp::SharedPtrCreator<CollageViewerImpl>::create;
-        typedef std::list<Glib::RefPtr<Gdk::Pixbuf> > PixbufList;
-
-        CollageViewerImpl () {}
-        virtual ~CollageViewerImpl () {}
-
-        virtual void set_source_pixbufs (PixbufList pixbufs);
-
-        virtual void refresh ();
-        virtual void reset ();
-
-    private:
-        PixbufList pixbufs;
-        ip::BinPacker::Ptr packer;
-        ip::Rectangle::Ptr collage;
-
-        virtual bool on_draw (const Cairo::RefPtr <Cairo::Context> &cr);
-        virtual void on_binpack_finish ();
-    };
 }
 
 void PixbufRectangle::width (double new_width)
@@ -100,38 +74,57 @@ void PixbufRectangle::height (double new_height)
     _height = new_height;
 }
 
-ip::CollageViewer::Ptr ip::CollageViewer::create ()
+
+struct ip::CollageViewer::Private : public sigc::trackable
 {
-    return CollageViewerImpl::create ();
+    Private (ip::CollageViewer &parent) : parent (parent) {}
+
+    CollageViewer &parent;
+    BinPacker::Ptr packer;
+    PixbufList     pixbufs;
+    Rectangle::Ptr collage;
+
+    void on_binpack_finish ();
+};
+
+void ip::CollageViewer::Private::on_binpack_finish ()
+{
+    collage = packer->result ();
+    parent.queue_draw ();
 }
 
-void
-CollageViewerImpl::set_source_pixbufs (PixbufList pixbufs)
+
+ip::CollageViewer::CollageViewer () :
+    _priv (new Private (*this)) {}
+
+ip::CollageViewer::~CollageViewer () {} // Needed for unique_ptr deleter
+
+void ip::CollageViewer::set_source_pixbufs (PixbufList pixbufs)
 {
-    this->pixbufs = std::move (pixbufs);
+    _priv->pixbufs = std::move (pixbufs);
 
     refresh ();
 }
 
-void CollageViewerImpl::refresh ()
+void ip::CollageViewer::refresh ()
 {
     std::list<ip::Rectangle::Ptr> rectangles;
 
-    for (auto pixbuf : pixbufs)
+    for (auto pixbuf : _priv->pixbufs)
         rectangles.push_back (PixbufRectangle::create (pixbuf));
 
-    packer = ip::BinPacker::create ();
-    packer->connect_signal_finish
-        (sigc::mem_fun (*this, &CollageViewerImpl::on_binpack_finish));
-    packer->source_rectangles (std::move (rectangles));
+    _priv->packer = ip::BinPacker::create ();
+    _priv->packer->connect_signal_finish
+        (sigc::mem_fun (*_priv.get (), &Private::on_binpack_finish));
+    _priv->packer->source_rectangles (std::move (rectangles));
 
-    packer->start ();
+    _priv->packer->start ();
 }
 
-void CollageViewerImpl::reset ()
+void ip::CollageViewer::reset ()
 {
-    packer.reset ();
-    pixbufs.clear ();
+    _priv->packer.reset ();
+    _priv->pixbufs.clear ();
 }
 
 namespace {
@@ -145,13 +138,13 @@ namespace {
     };
 }
 
-bool CollageViewerImpl::on_draw (const Cairo::RefPtr<Cairo::Context> &cr)
+bool ip::CollageViewer::on_draw (const Cairo::RefPtr<Cairo::Context> &cr)
 {
-    if (!collage)
+    if (!_priv->collage)
         return true;
 
     std::queue<RectangleCoord> drawq;
-    drawq.push ({collage, 0, 0});
+    drawq.push ({_priv->collage, 0, 0});
 
     while (!drawq.empty ()) {
         RectangleCoord rect = drawq.front ();
@@ -205,10 +198,4 @@ bool CollageViewerImpl::on_draw (const Cairo::RefPtr<Cairo::Context> &cr)
     }
 
     return true;
-}
-
-void CollageViewerImpl::on_binpack_finish ()
-{
-    collage = packer->result ();
-    queue_draw ();
 }

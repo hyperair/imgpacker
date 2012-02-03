@@ -9,20 +9,22 @@ namespace ImgPack
     class CollageViewer : public Gtk::DrawingArea
     {
     public:
-        typedef std::shared_ptr<CollageViewer> Ptr;
-        typedef std::weak_ptr<CollageViewer> WPtr;
+        typedef std::list<Glib::RefPtr<Gdk::Pixbuf> > PixbufList;
 
-        static Ptr create ();
+        CollageViewer ();
+        ~CollageViewer ();
 
-        CollageViewer () = default;
-        virtual ~CollageViewer () {}
+        void set_source_pixbufs (PixbufList pixbufs);
 
-        virtual void
-        set_source_pixbufs
-        (std::list<Glib::RefPtr<Gdk::Pixbuf> > pixbufs) = 0;
+        void refresh ();
+        void reset ();
 
-        virtual void refresh () = 0;
-        virtual void reset () = 0;
+    protected:
+        virtual bool on_draw (const Cairo::RefPtr<Cairo::Context> &cr);
+
+    private:
+        class Private;
+        std::unique_ptr<Private> _priv;
     };
 }
 
