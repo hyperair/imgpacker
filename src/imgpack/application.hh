@@ -2,6 +2,7 @@
 #define IMGPACK_IMGPACK_APPLICATION_HH
 
 #include <unordered_set>
+#include <memory>
 #include <gtkmm.h>
 #include <imgpack/main-window.hh>
 
@@ -21,7 +22,7 @@ namespace ImgPack
         void spawn_window ();
 
     private:
-        std::unordered_set<MainWindow::Ptr>  windows;
+        std::unordered_set<std::shared_ptr<MainWindow> >  windows;
         Gtk::AboutDialog about_dialog;
     };
 }

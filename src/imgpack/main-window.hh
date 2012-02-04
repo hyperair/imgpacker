@@ -6,22 +6,29 @@
 
 namespace ImgPack
 {
+    class StatusController;
+
     class StatusClient
     {
+        friend class StatusController;
+
     public:
+        ~StatusClient ();
+
         typedef std::shared_ptr<StatusClient> Ptr;
         typedef std::weak_ptr<StatusClient> WPtr;
 
-        virtual Gtk::Statusbar &statusbar () = 0;
-        virtual Gtk::ProgressBar &progressbar () = 0;
+        Gtk::Statusbar     &statusbar ();
+        Gtk::ProgressBar   &progressbar ();
 
-        virtual bool live () = 0;
+        bool is_live ();
 
-        virtual ~StatusClient () {}
-
-    protected:
-        StatusClient () {}
+    private:
+        StatusClient (StatusController &controller);
         StatusClient (const StatusClient &) = delete;
+
+        StatusController *controller;
+        void unlink () {controller = nullptr;}
     };
 
 
@@ -38,16 +45,14 @@ namespace ImgPack
     class MainWindow : public Gtk::Window
     {
     public:
-        typedef std::shared_ptr<MainWindow> Ptr;
-        typedef std::weak_ptr<MainWindow> WPtr;
+        explicit MainWindow (Application &app);
+        ~MainWindow ();
 
-        static Ptr create (Application &app);
+        StatusClient::Ptr request_status ();
 
-        MainWindow () {}
-        MainWindow (const MainWindow &) = delete;
-        virtual ~MainWindow () {}
-
-        virtual StatusClient::Ptr request_status () = 0;
+    private:
+        class Private;
+        std::unique_ptr<Private> _priv;
     };
 }
 

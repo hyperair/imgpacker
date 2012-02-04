@@ -8,140 +8,65 @@
 #include <imgpack/logger.hh>
 #include <imgpack/collage-viewer.hh>
 
-using namespace ImgPack;
-using Gtk::UIManager;
+namespace ip = ImgPack;
 
-namespace {
-    class StatusController;
+class ip::StatusController
+{
+public:
+    StatusController () {}
+    StatusController (const StatusController &) = delete;
+    ~StatusController ();
 
-    class StatusClientImpl :
-        public StatusClient,
-        public nihpp::SharedPtrCreator<StatusClientImpl>
-    {
-   public:
-        typedef typename nihpp::SharedPtrCreator<StatusClientImpl>::Ptr Ptr;
-        typedef typename nihpp::SharedPtrCreator<StatusClientImpl>::WPtr WPtr;
-        using nihpp::SharedPtrCreator<StatusClientImpl>::create;
+    StatusClient::Ptr request ();
 
-        friend class nihpp::SharedPtrCreator<StatusClientImpl>;
-        friend class nihpp::PtrCreator<StatusClientImpl, Ptr>;
+    Gtk::Statusbar      statusbar;
+    Gtk::ProgressBar    progressbar;
 
+private:
+    StatusClient::WPtr client;
+};
 
-        virtual Gtk::Statusbar &statusbar ();
-        virtual Gtk::ProgressBar &progressbar ();
-
-        virtual bool live () {return controller;}
-
-        virtual ~StatusClientImpl ();
-
-        void unlink ();
-
-    private:
-        StatusClientImpl (StatusController &controller);
-        StatusController *controller;
-    };
-
-
-    class StatusController
-    {
-    public:
-        StatusController () {}
-        StatusController (const StatusController &) = delete;
-        ~StatusController ();
-
-        StatusClient::Ptr request ();
-
-        Gtk::Statusbar statusbar;
-        Gtk::ProgressBar progressbar;
-
-    private:
-        StatusClientImpl::WPtr client;
-    };
-
-
-    class MainWindowImpl :
-        public MainWindow,
-        public nihpp::SharedPtrCreator<MainWindowImpl>
-    {
-    public:
-        using nihpp::SharedPtrCreator<MainWindowImpl>::create;
-
-        explicit MainWindowImpl (Application &app);
-        virtual ~MainWindowImpl () {}
-
-        virtual StatusClient::Ptr request_status ();
-
-    private:
-        Application                 &app;
-        Glib::RefPtr<Gtk::UIManager> uimgr;
-        void                         init_uimgr ();
-
-        Gtk::VBox                    main_vbox;
-        Gtk::HPaned                  main_pane;
-
-        ImageList                    image_list;
-        CollageViewer                viewer;
-
-        StatusController             status;
-        Gtk::Statusbar &statusbar () {return status.statusbar;}
-        Gtk::ProgressBar &progressbar () {return status.progressbar;}
-
-        PixbufLoader::Ptr            pixbuf_loader;
-
-        // callbacks
-        void on_add_clicked ();
-        void on_exec ();
-        void on_new_window ();
-
-        void prepare_pixbuf_loader ();
-        void reap_pixbufs ();
-        void on_pixbuf_abort ();
-    };
-}
-
-StatusClientImpl::StatusClientImpl (StatusController &controller) :
+
+ip::StatusClient::StatusClient (StatusController &controller) :
     controller (&controller)
 {
     controller.statusbar.show ();
 }
 
-StatusClientImpl::~StatusClientImpl ()
+ip::StatusClient::~StatusClient ()
 {
     if (controller)
         controller->statusbar.hide ();
 }
 
-void StatusClientImpl::unlink ()
+Gtk::Statusbar &ip::StatusClient::statusbar ()
 {
-    controller = nullptr;
-}
-
-Gtk::Statusbar &StatusClientImpl::statusbar ()
-{
+    g_assert (controller);
     return controller->statusbar;
 }
 
-Gtk::ProgressBar &StatusClientImpl::progressbar ()
+Gtk::ProgressBar &ip::StatusClient::progressbar ()
 {
+    g_assert (controller);
     return controller->progressbar;
 }
 
 
 // StatusController definitions
-StatusController::~StatusController ()
+ip::StatusController::~StatusController ()
 {
-    StatusClientImpl::Ptr ptr = client.lock ();
+    StatusClient::Ptr ptr = client.lock ();
 
     if (ptr)
         ptr->unlink ();
 }
 
-StatusClient::Ptr StatusController::request ()
+ip::StatusClient::Ptr ip::StatusController::request ()
 {
     if (!client.expired ())
         throw ImgPack::StatusBusy ();
 
-    StatusClientImpl::Ptr new_client = StatusClientImpl::create (*this);
+    StatusClient::Ptr new_client (new StatusClient (*this));
     client = new_client;
     return new_client;
 }
@@ -295,21 +220,43 @@ ImageChooserDialog::ImageChooserDialog (Gtk::Window &parent) :
 
 
 // MainWindow definitions
-
-//static
-MainWindow::Ptr MainWindow::create (Application &app)
+struct ip::MainWindow::Private : sigc::trackable
 {
-    return MainWindowImpl::create (app);
-}
+    Private (Application &app, MainWindow &self);
 
-MainWindowImpl::MainWindowImpl (Application &app) :
+    Application &app;
+    MainWindow &self;
+    Glib::RefPtr<Gtk::UIManager> uimgr;
+
+    void init_uimgr ();
+
+    Gtk::VBox main_vbox;
+    Gtk::HPaned main_pane;
+
+    ImageList image_list;
+    CollageViewer viewer;
+
+    StatusController status;
+    Gtk::Statusbar &statusbar ()        {return status.statusbar;}
+    Gtk::ProgressBar &progressbar ()    {return status.progressbar;}
+
+    PixbufLoader::Ptr pixbuf_loader;
+
+    void on_add_clicked ();
+    void on_exec ();
+    void on_new_window ();
+
+    void prepare_pixbuf_loader ();
+    void reap_pixbufs ();
+    void on_pixbuf_abort ();
+};
+
+ip::MainWindow::Private::Private (Application &app, MainWindow &self) :
     app (app),
-    uimgr (UIManager::create ())
+    self (self),
+    uimgr (Gtk::UIManager::create ())
 {
-    add (main_vbox);
-
     init_uimgr ();
-    add_accel_group (uimgr->get_accel_group ());
 
     // Prepare menubar and toolbar
     main_vbox.pack_start (*uimgr->get_widget ("/main_menubar"),
@@ -320,11 +267,11 @@ MainWindowImpl::MainWindowImpl (Application &app) :
     main_vbox.pack_start (main_pane, Gtk::PACK_EXPAND_WIDGET);
 
     // Prepare main pane
-    Gtk::ScrolledWindow *scrolled = Gtk::manage (new Gtk::ScrolledWindow ());
+    Gtk::ScrolledWindow *scrolled = new Gtk::ScrolledWindow ();
     scrolled->add (image_list);
     scrolled->set_min_content_width (image_list.get_icon_width () + 20);
 
-    main_pane.pack1 (*scrolled, Gtk::SHRINK | Gtk::FILL);
+    main_pane.pack1 (*manage (scrolled), Gtk::SHRINK | Gtk::FILL);
     main_pane.pack2 (viewer, Gtk::EXPAND | Gtk::FILL);
 
     // Prepare statusbar
@@ -335,16 +282,24 @@ MainWindowImpl::MainWindowImpl (Application &app) :
 
     // Only show statusbar when operation is active
     statusbar ().hide ();
+}
 
+ip::MainWindow::MainWindow (Application &app) :
+    _priv (new Private (app, *this))
+{
+    add (_priv->main_vbox);
+    add_accel_group (_priv->uimgr->get_accel_group ());
     set_default_size (640, 480);
 }
 
-StatusClient::Ptr MainWindowImpl::request_status ()
+ip::MainWindow::~MainWindow () {} // For unique_ptr
+
+ip::StatusClient::Ptr ip::MainWindow::request_status ()
 {
-    return status.request ();
+    return _priv->status.request ();
 }
 
-void MainWindowImpl::init_uimgr ()
+void ip::MainWindow::Private::init_uimgr ()
 {
     uimgr->add_ui_from_string (
         "<ui>"
@@ -386,21 +341,22 @@ void MainWindowImpl::init_uimgr ()
 
     actions->add (Action::create ("NewAction", Gtk::Stock::NEW,
                                   _("New Collage")),
-                  sigc::mem_fun (*this, &MainWindowImpl::on_new_window));
+                  sigc::mem_fun (*this, &Private::on_new_window));
     actions->add (Action::create ("AddAction", Gtk::Stock::ADD,
                                   _("Add images")),
                   Gtk::AccelKey ("<Alt>A"),
-                  sigc::mem_fun (*this, &MainWindowImpl::on_add_clicked));
+                  sigc::mem_fun (*this, &Private::on_add_clicked));
 
     actions->add (Action::create ("RemoveAction", Gtk::Stock::REMOVE,
                                   _("Remove images")),
-                  sigc::mem_fun (image_list, &ImageList::remove_selected));
+                  sigc::mem_fun (image_list,
+                                 &ImageList::remove_selected));
 
     actions->add (Action::create ("ExecAction", Gtk::Stock::EXECUTE),
-                  sigc::mem_fun (*this, &MainWindowImpl::on_exec));
+                  sigc::mem_fun (*this, &Private::on_exec));
 
     actions->add (Action::create ("CloseAction", Gtk::Stock::CLOSE),
-                  sigc::mem_fun (*this, &MainWindowImpl::hide));
+                  sigc::mem_fun (self, &MainWindow::hide));
 
     actions->add (Action::create ("QuitAction", Gtk::Stock::QUIT),
                   sigc::ptr_fun (&Gtk::Main::quit));
@@ -409,9 +365,9 @@ void MainWindowImpl::init_uimgr ()
 }
 
 // callbacks
-void MainWindowImpl::on_add_clicked ()
+void ip::MainWindow::Private::on_add_clicked ()
 {
-    ImageChooserDialog dialog (*this);
+    ImageChooserDialog dialog (self);
 
     prepare_pixbuf_loader ();
 
@@ -423,34 +379,34 @@ void MainWindowImpl::on_add_clicked ()
     pixbuf_loader->start ();
 }
 
-void MainWindowImpl::on_exec ()
+void ip::MainWindow::Private::on_exec ()
 {
     viewer.set_source_pixbufs (image_list.pixbufs ());
 }
 
-void MainWindowImpl::on_new_window ()
+void ip::MainWindow::Private::on_new_window ()
 {
     app.spawn_window ();
 }
 
-void MainWindowImpl::prepare_pixbuf_loader ()
+void ip::MainWindow::Private::prepare_pixbuf_loader ()
 {
     if (pixbuf_loader)
         return;
 
-    pixbuf_loader = PixbufLoader::create (request_status ());
+    pixbuf_loader = PixbufLoader::create (self.request_status ());
     pixbuf_loader->connect_signal_finish
-        (sigc::mem_fun (*this, &MainWindowImpl::reap_pixbufs));
+        (sigc::mem_fun (*this, &Private::reap_pixbufs));
     pixbuf_loader->connect_signal_abort
-        (sigc::mem_fun (*this, &MainWindowImpl::on_pixbuf_abort));
+        (sigc::mem_fun (*this, &Private::on_pixbuf_abort));
 }
 
 
-void MainWindowImpl::reap_pixbufs ()
+void ip::MainWindow::Private::reap_pixbufs ()
 {
     auto results = pixbuf_loader->results ();
 
-    ImportErrorDialog errors (*this);
+    ImportErrorDialog errors (self);
 
     for (auto i : results)
         if (*i)
@@ -465,7 +421,7 @@ void MainWindowImpl::reap_pixbufs ()
         errors.run ();
 }
 
-void MainWindowImpl::on_pixbuf_abort ()
+void ip::MainWindow::Private::on_pixbuf_abort ()
 {
     pixbuf_loader.reset ();
 }

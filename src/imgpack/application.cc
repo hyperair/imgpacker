@@ -33,8 +33,8 @@ void Application::show_about ()
 
 void Application::spawn_window ()
 {
-    MainWindow::Ptr window = MainWindow::create (*this);
-    MainWindow::WPtr weak_window = window;
+    std::shared_ptr<MainWindow> window (new MainWindow  (*this));
+    std::weak_ptr<MainWindow> weak_window = window;
 
     windows.insert (window);
 
