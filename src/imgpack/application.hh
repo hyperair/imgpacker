@@ -15,11 +15,11 @@ namespace ImgPack
         Application (const Application &) = delete;
         virtual ~Application () {}
 
-        void run ();            // Hide Gtk::Main::run
+        void             run (); // Hide Gtk::Main::run
 
-        void show_about ();
+        void             show_about ();
 
-        void spawn_window ();
+        void             spawn_window ();
 
     private:
         std::unordered_set<std::shared_ptr<MainWindow> >  windows;

@@ -224,31 +224,31 @@ struct ip::MainWindow::Private : sigc::trackable
 {
     Private (Application &app, MainWindow &self);
 
-    Application &app;
-    MainWindow &self;
-    Glib::RefPtr<Gtk::UIManager> uimgr;
+    Application                  &app;
+    MainWindow                   &self;
+    Glib::RefPtr<Gtk::UIManager>  uimgr;
 
-    void init_uimgr ();
+    void                          init_uimgr ();
 
-    Gtk::VBox main_vbox;
-    Gtk::HPaned main_pane;
+    Gtk::VBox                     main_vbox;
+    Gtk::HPaned                   main_pane;
 
-    ImageList image_list;
-    CollageViewer viewer;
+    ImageList                     image_list;
+    CollageViewer                 viewer;
 
-    StatusController status;
+    StatusController              status;
     Gtk::Statusbar &statusbar ()        {return status.statusbar;}
     Gtk::ProgressBar &progressbar ()    {return status.progressbar;}
 
-    PixbufLoader::Ptr pixbuf_loader;
+    PixbufLoader::Ptr             pixbuf_loader;
 
-    void on_add_clicked ();
-    void on_exec ();
-    void on_new_window ();
+    void                          on_add_clicked ();
+    void                          on_exec ();
+    void                          on_new_window ();
 
-    void prepare_pixbuf_loader ();
-    void reap_pixbufs ();
-    void on_pixbuf_abort ();
+    void                          prepare_pixbuf_loader ();
+    void                          reap_pixbufs ();
+    void                          on_pixbuf_abort ();
 };
 
 ip::MainWindow::Private::Private (Application &app, MainWindow &self) :
