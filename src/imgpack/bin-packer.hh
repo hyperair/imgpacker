@@ -35,7 +35,7 @@ namespace ImgPack
     };
 
 
-    class BinPacker : public AsyncOperation
+    class BinPacker : virtual public AsyncOperation
     {
     public:
         typedef std::shared_ptr<BinPacker> Ptr;

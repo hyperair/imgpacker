@@ -250,6 +250,7 @@ ip::BinPacker::Ptr ip::BinPacker::create ()
 }
 
 BinPackerImpl::BinPackerImpl () :
+    AsyncOperation ("BinPacker"),
     aspect_ratio (1)
 {
 }
