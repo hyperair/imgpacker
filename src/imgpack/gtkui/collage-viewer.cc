@@ -1,11 +1,12 @@
 #include <queue>
 
 #include <nihpp/sharedptrcreator.hh>
-#include <imgpack/collage-viewer.hh>
+#include <imgpack/gtkui/collage-viewer.hh>
 #include <imgpack/bin-packer.hh>
 #include <imgpack/logger.hh>
 
 namespace ip = ImgPack;
+namespace ipg = ip::GtkUI;
 
 namespace {
     class PixbufRectangle :
@@ -75,9 +76,9 @@ void PixbufRectangle::height (double new_height)
 }
 
 
-struct ip::CollageViewer::Private : public sigc::trackable
+struct ipg::CollageViewer::Private : public sigc::trackable
 {
-    Private (ip::CollageViewer &parent) : parent (parent) {}
+    Private (ipg::CollageViewer &parent) : parent (parent) {}
 
     CollageViewer &parent;
     BinPacker::Ptr packer;
@@ -87,26 +88,26 @@ struct ip::CollageViewer::Private : public sigc::trackable
     void on_binpack_finish ();
 };
 
-void ip::CollageViewer::Private::on_binpack_finish ()
+void ipg::CollageViewer::Private::on_binpack_finish ()
 {
     collage = packer->result ();
     parent.queue_draw ();
 }
 
 
-ip::CollageViewer::CollageViewer () :
+ipg::CollageViewer::CollageViewer () :
     _priv (new Private (*this)) {}
 
-ip::CollageViewer::~CollageViewer () {} // Needed for unique_ptr deleter
+ipg::CollageViewer::~CollageViewer () {} // Needed for unique_ptr deleter
 
-void ip::CollageViewer::set_source_pixbufs (PixbufList pixbufs)
+void ipg::CollageViewer::set_source_pixbufs (PixbufList pixbufs)
 {
     _priv->pixbufs = std::move (pixbufs);
 
     refresh ();
 }
 
-void ip::CollageViewer::refresh ()
+void ipg::CollageViewer::refresh ()
 {
     std::list<ip::Rectangle::Ptr> rectangles;
 
@@ -121,7 +122,7 @@ void ip::CollageViewer::refresh ()
     _priv->packer->start ();
 }
 
-void ip::CollageViewer::reset ()
+void ipg::CollageViewer::reset ()
 {
     _priv->packer.reset ();
     _priv->pixbufs.clear ();
@@ -138,7 +139,7 @@ namespace {
     };
 }
 
-bool ip::CollageViewer::on_draw (const Cairo::RefPtr<Cairo::Context> &cr)
+bool ipg::CollageViewer::on_draw (const Cairo::RefPtr<Cairo::Context> &cr)
 {
     if (!_priv->collage)
         return true;

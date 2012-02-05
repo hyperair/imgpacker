@@ -2,23 +2,24 @@ bin_PROGRAMS = imgpacker
 imgpacker_SOURCES =				\
 	src/imgpack/application.cc		\
 	src/imgpack/application.hh		\
-	src/imgpack/main-window.cc		\
-	src/imgpack/main-window.hh		\
-	src/imgpack/image-list.cc		\
-	src/imgpack/image-list.hh		\
 	src/imgpack/logger.hh			\
 	src/imgpack/logger.cc			\
 	src/imgpack/thread-pool.hh		\
 	src/imgpack/thread-pool.cc		\
-	src/imgpack/pixbuf-loader.hh		\
-	src/imgpack/pixbuf-loader.cc		\
-	src/imgpack/collage-viewer.hh		\
-	src/imgpack/collage-viewer.cc		\
 	src/imgpack/bin-packer.hh		\
 	src/imgpack/bin-packer.cc		\
 	src/imgpack/async-operation.hh		\
 	src/imgpack/async-operation.cc		\
+	src/imgpack/gtkui/main-window.cc	\
+	src/imgpack/gtkui/main-window.hh	\
+	src/imgpack/gtkui/image-list.cc		\
+	src/imgpack/gtkui/image-list.hh		\
+	src/imgpack/gtkui/pixbuf-loader.hh	\
+	src/imgpack/gtkui/pixbuf-loader.cc	\
+	src/imgpack/gtkui/collage-viewer.hh	\
+	src/imgpack/gtkui/collage-viewer.cc	\
 	src/main.cc
+
 imgpacker_CXXFLAGS =						\
 	$(CXX0X_FLAG)						\
 	$(WARN_CXXFLAGS)					\

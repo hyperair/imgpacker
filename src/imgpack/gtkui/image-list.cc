@@ -2,8 +2,8 @@
 #include <nihpp/singleton.hh>
 #include <nihpp/sigc++/fixfunctors.hh>
 
-#include <imgpack/image-list.hh>
-#include <imgpack/main-window.hh>
+#include <imgpack/gtkui/image-list.hh>
+#include <imgpack/gtkui/main-window.hh>
 #include <imgpack/logger.hh>
 
 namespace {
@@ -32,7 +32,7 @@ namespace {
     }
 }
 
-using ImgPack::ImageList;
+using ImgPack::GtkUI::ImageList;
 
 ImageList::ImageList () :
     model (Gtk::ListStore::create (cols ()))

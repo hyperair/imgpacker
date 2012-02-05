@@ -4,12 +4,12 @@
 #include <autosprintf.h>
 
 #include <glibmm/i18n.h>
-#include <imgpack/pixbuf-loader.hh>
-#include <imgpack/main-window.hh>
+#include <imgpack/gtkui/pixbuf-loader.hh>
+#include <imgpack/gtkui/main-window.hh>
 #include <imgpack/logger.hh>
 
-using ImgPack::PixbufLoader;
-using ImgPack::StatusClient;
+using ImgPack::GtkUI::PixbufLoader;
+using ImgPack::GtkUI::StatusClient;
 
 namespace {
     class PixbufLoaderImpl :

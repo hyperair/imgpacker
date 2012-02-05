@@ -6,6 +6,7 @@
 #include <config.h>
 
 using ImgPack::Application;
+using ImgPack::GtkUI::MainWindow;
 
 Application::Application (int &argc, char **&argv) :
     Gtk::Main (argc, argv)

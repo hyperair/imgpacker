@@ -4,7 +4,7 @@
 #include <unordered_set>
 #include <memory>
 #include <gtkmm.h>
-#include <imgpack/main-window.hh>
+#include <imgpack/gtkui/main-window.hh>
 
 namespace ImgPack
 {
@@ -22,7 +22,7 @@ namespace ImgPack
         void             spawn_window ();
 
     private:
-        std::unordered_set<std::shared_ptr<MainWindow> >  windows;
+        std::unordered_set<std::shared_ptr<GtkUI::MainWindow> >  windows;
         Gtk::AboutDialog about_dialog;
     };
 }

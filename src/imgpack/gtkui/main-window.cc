@@ -1,16 +1,17 @@
 #include <memory>
 #include <glibmm/i18n.h>
 #include <nihpp/singleton.hh>
-#include <imgpack/main-window.hh>
+#include <imgpack/gtkui/main-window.hh>
 #include <imgpack/application.hh>
-#include <imgpack/image-list.hh>
-#include <imgpack/pixbuf-loader.hh>
+#include <imgpack/gtkui/image-list.hh>
+#include <imgpack/gtkui/pixbuf-loader.hh>
 #include <imgpack/logger.hh>
-#include <imgpack/collage-viewer.hh>
+#include <imgpack/gtkui/collage-viewer.hh>
 
 namespace ip = ImgPack;
+namespace ipg = ip::GtkUI;
 
-class ip::StatusController
+class ipg::StatusController
 {
 public:
     StatusController () {}
@@ -27,25 +28,25 @@ private:
 };
 
 
-ip::StatusClient::StatusClient (StatusController &controller) :
+ipg::StatusClient::StatusClient (StatusController &controller) :
     controller (&controller)
 {
     controller.statusbar.show ();
 }
 
-ip::StatusClient::~StatusClient ()
+ipg::StatusClient::~StatusClient ()
 {
     if (controller)
         controller->statusbar.hide ();
 }
 
-Gtk::Statusbar &ip::StatusClient::statusbar ()
+Gtk::Statusbar &ipg::StatusClient::statusbar ()
 {
     g_assert (controller);
     return controller->statusbar;
 }
 
-Gtk::ProgressBar &ip::StatusClient::progressbar ()
+Gtk::ProgressBar &ipg::StatusClient::progressbar ()
 {
     g_assert (controller);
     return controller->progressbar;
@@ -53,7 +54,7 @@ Gtk::ProgressBar &ip::StatusClient::progressbar ()
 
 
 // StatusController definitions
-ip::StatusController::~StatusController ()
+ipg::StatusController::~StatusController ()
 {
     StatusClient::Ptr ptr = client.lock ();
 
@@ -61,10 +62,10 @@ ip::StatusController::~StatusController ()
         ptr->unlink ();
 }
 
-ip::StatusClient::Ptr ip::StatusController::request ()
+ipg::StatusClient::Ptr ipg::StatusController::request ()
 {
     if (!client.expired ())
-        throw ImgPack::StatusBusy ();
+        throw StatusBusy ();
 
     StatusClient::Ptr new_client (new StatusClient (*this));
     client = new_client;
@@ -220,7 +221,7 @@ ImageChooserDialog::ImageChooserDialog (Gtk::Window &parent) :
 
 
 // MainWindow definitions
-struct ip::MainWindow::Private : sigc::trackable
+struct ipg::MainWindow::Private : sigc::trackable
 {
     Private (Application &app, MainWindow &self);
 
@@ -251,7 +252,7 @@ struct ip::MainWindow::Private : sigc::trackable
     void                          on_pixbuf_abort ();
 };
 
-ip::MainWindow::Private::Private (Application &app, MainWindow &self) :
+ipg::MainWindow::Private::Private (Application &app, MainWindow &self) :
     app (app),
     self (self),
     uimgr (Gtk::UIManager::create ())
@@ -284,7 +285,7 @@ ip::MainWindow::Private::Private (Application &app, MainWindow &self) :
     statusbar ().hide ();
 }
 
-ip::MainWindow::MainWindow (Application &app) :
+ipg::MainWindow::MainWindow (Application &app) :
     _priv (new Private (app, *this))
 {
     add (_priv->main_vbox);
@@ -292,14 +293,14 @@ ip::MainWindow::MainWindow (Application &app) :
     set_default_size (640, 480);
 }
 
-ip::MainWindow::~MainWindow () {} // For unique_ptr
+ipg::MainWindow::~MainWindow () {} // For unique_ptr
 
-ip::StatusClient::Ptr ip::MainWindow::request_status ()
+ipg::StatusClient::Ptr ipg::MainWindow::request_status ()
 {
     return _priv->status.request ();
 }
 
-void ip::MainWindow::Private::init_uimgr ()
+void ipg::MainWindow::Private::init_uimgr ()
 {
     uimgr->add_ui_from_string (
         "<ui>"
@@ -365,7 +366,7 @@ void ip::MainWindow::Private::init_uimgr ()
 }
 
 // callbacks
-void ip::MainWindow::Private::on_add_clicked ()
+void ipg::MainWindow::Private::on_add_clicked ()
 {
     ImageChooserDialog dialog (self);
 
@@ -379,17 +380,17 @@ void ip::MainWindow::Private::on_add_clicked ()
     pixbuf_loader->start ();
 }
 
-void ip::MainWindow::Private::on_exec ()
+void ipg::MainWindow::Private::on_exec ()
 {
     viewer.set_source_pixbufs (image_list.pixbufs ());
 }
 
-void ip::MainWindow::Private::on_new_window ()
+void ipg::MainWindow::Private::on_new_window ()
 {
     app.spawn_window ();
 }
 
-void ip::MainWindow::Private::prepare_pixbuf_loader ()
+void ipg::MainWindow::Private::prepare_pixbuf_loader ()
 {
     if (pixbuf_loader)
         return;
@@ -402,7 +403,7 @@ void ip::MainWindow::Private::prepare_pixbuf_loader ()
 }
 
 
-void ip::MainWindow::Private::reap_pixbufs ()
+void ipg::MainWindow::Private::reap_pixbufs ()
 {
     auto results = pixbuf_loader->results ();
 
@@ -421,7 +422,7 @@ void ip::MainWindow::Private::reap_pixbufs ()
         errors.run ();
 }
 
-void ip::MainWindow::Private::on_pixbuf_abort ()
+void ipg::MainWindow::Private::on_pixbuf_abort ()
 {
     pixbuf_loader.reset ();
 }
