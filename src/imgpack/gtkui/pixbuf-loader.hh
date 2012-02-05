@@ -13,23 +13,25 @@ namespace ImgPack
         class MainWindow;
         class StatusClient;
 
-        class PixbufLoader : public AsyncOperation
+        class PixbufLoader : public AsyncOperation,
+                             public nihpp::SharedPtrCreator<PixbufLoader>
         {
         public:
             class Result;
 
-            typedef std::shared_ptr<PixbufLoader> Ptr;
-            typedef std::weak_ptr<PixbufLoader> WPtr;
-            static Ptr create (const std::shared_ptr<StatusClient> &status);
-
-            PixbufLoader () : AsyncOperation ("PixbufLoader") {}
+            PixbufLoader (const std::shared_ptr<StatusClient> &status);
             PixbufLoader (const PixbufLoader &) = delete;
-            virtual ~PixbufLoader() {}
+            ~PixbufLoader();
 
-            virtual void enqueue (const Glib::RefPtr<Gio::File> &file) = 0;
+            void enqueue (const Glib::RefPtr<Gio::File> &file);
 
-            virtual const std::list<std::shared_ptr<Result> > &
-            results () const = 0;
+            const std::list<std::shared_ptr<Result> > & results () const;
+
+        private:
+            class Private;
+            std::unique_ptr<Private> _priv;
+
+            virtual void run ();
         };
 
 
