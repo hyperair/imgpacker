@@ -6,8 +6,6 @@ imgpacker_SOURCES =				\
 	src/imgpack/logger.cc			\
 	src/imgpack/thread-pool.hh		\
 	src/imgpack/thread-pool.cc		\
-	src/imgpack/bin-packer.hh		\
-	src/imgpack/bin-packer.cc		\
 	src/imgpack/async-operation.hh		\
 	src/imgpack/async-operation.cc		\
 	src/imgpack/gtkui/main-window.cc	\
@@ -18,6 +16,8 @@ imgpacker_SOURCES =				\
 	src/imgpack/gtkui/pixbuf-loader.cc	\
 	src/imgpack/gtkui/collage-viewer.hh	\
 	src/imgpack/gtkui/collage-viewer.cc	\
+	src/imgpack/algorithm/bin-packer.hh	\
+	src/imgpack/algorithm/bin-packer.cc	\
 	src/main.cc
 
 imgpacker_CXXFLAGS =						\

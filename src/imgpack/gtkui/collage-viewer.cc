@@ -2,15 +2,16 @@
 
 #include <nihpp/sharedptrcreator.hh>
 #include <imgpack/gtkui/collage-viewer.hh>
-#include <imgpack/bin-packer.hh>
+#include <imgpack/algorithm/bin-packer.hh>
 #include <imgpack/logger.hh>
 
 namespace ip = ImgPack;
 namespace ipg = ip::GtkUI;
+namespace ipa = ip::Algorithm;
 
 namespace {
     class PixbufRectangle :
-        public ip::Rectangle,
+        public ipa::Rectangle,
         public nihpp::SharedPtrCreator<PixbufRectangle>
     {
     public:
@@ -80,10 +81,10 @@ struct ipg::CollageViewer::Private : public sigc::trackable
 {
     Private (ipg::CollageViewer &parent) : parent (parent) {}
 
-    CollageViewer &parent;
-    BinPacker::Ptr packer;
-    PixbufList     pixbufs;
-    Rectangle::Ptr collage;
+    CollageViewer       &parent;
+    ipa::BinPacker::Ptr  packer;
+    PixbufList           pixbufs;
+    ipa::Rectangle::Ptr  collage;
 
     void on_binpack_finish ();
 };
@@ -109,12 +110,12 @@ void ipg::CollageViewer::set_source_pixbufs (PixbufList pixbufs)
 
 void ipg::CollageViewer::refresh ()
 {
-    std::list<ip::Rectangle::Ptr> rectangles;
+    std::list<ipa::Rectangle::Ptr> rectangles;
 
     for (auto pixbuf : _priv->pixbufs)
         rectangles.push_back (PixbufRectangle::create (pixbuf));
 
-    _priv->packer = ip::BinPacker::create ();
+    _priv->packer = ipa::BinPacker::create ();
     _priv->packer->connect_signal_finish
         (sigc::mem_fun (*_priv.get (), &Private::on_binpack_finish));
     _priv->packer->source_rectangles (std::move (rectangles));
@@ -131,10 +132,10 @@ void ipg::CollageViewer::reset ()
 namespace {
     struct RectangleCoord
     {
-        ip::Rectangle::Ptr rect;
+        ipa::Rectangle::Ptr rect;
         double x, y;
 
-        RectangleCoord (ip::Rectangle::Ptr rect, double x, double y) :
+        RectangleCoord (ipa::Rectangle::Ptr rect, double x, double y) :
             rect (rect), x (x), y (y) {}
     };
 }
@@ -180,15 +181,15 @@ bool ipg::CollageViewer::on_draw (const Cairo::RefPtr<Cairo::Context> &cr)
                 drawq.push ({i, x, y});
 
                 switch (rect.rect->orientation ()) {
-                case ip::Rectangle::HORIZONTAL:
+                case ipa::Rectangle::HORIZONTAL:
                     x += i->width ();
                     break;
 
-                case ip::Rectangle::VERTICAL:
+                case ipa::Rectangle::VERTICAL:
                     y += i->height ();
                     break;
 
-                case ip::Rectangle::INVALID:
+                case ipa::Rectangle::INVALID:
                     break;
 
                 default:

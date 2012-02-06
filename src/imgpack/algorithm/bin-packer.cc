@@ -5,14 +5,15 @@
 #include <nihpp/sharedptrcreator.hh>
 #include <autosprintf.h>
 
-#include <imgpack/bin-packer.hh>
+#include <imgpack/algorithm/bin-packer.hh>
 #include <imgpack/logger.hh>
 
 namespace ip = ImgPack;
+namespace ipa = ip::Algorithm;
 
 namespace {
     class CompositeRectangle :
-        public ip::Rectangle
+        public ipa::Rectangle
     {
     public:
         typedef std::shared_ptr<CompositeRectangle> Ptr;
@@ -69,8 +70,8 @@ namespace {
 
     // Combines two rectangles either horizontally or vertically by equalizing
     // either width or height
-    CompositeRectangle::Ptr combine (ip::Rectangle::Ptr rect1,
-                                     ip::Rectangle::Ptr rect2,
+    CompositeRectangle::Ptr combine (ipa::Rectangle::Ptr rect1,
+                                     ipa::Rectangle::Ptr rect2,
                                      double target_aspect)
     {
         LOG(info) << "Combining rectangles: "
@@ -105,7 +106,7 @@ namespace {
 
 
     class BinPackerImpl :
-        public ip::BinPacker,
+        public ipa::BinPacker,
         public nihpp::SharedPtrCreator<BinPackerImpl>
     {
     public:
@@ -118,7 +119,7 @@ namespace {
         virtual void target_aspect (double aspect_ratio);
         virtual void source_rectangles (RectangleList rectangles);
 
-        virtual ip::Rectangle::Ptr result ();
+        virtual ipa::Rectangle::Ptr result ();
 
     private:
         virtual void run ();
@@ -128,15 +129,15 @@ namespace {
     };
 }
 
-CompositeRectangle::CompositeRectangle (ip::Rectangle::Ptr rect1,
-                                        ip::Rectangle::Ptr rect2) :
+CompositeRectangle::CompositeRectangle (ipa::Rectangle::Ptr rect1,
+                                        ipa::Rectangle::Ptr rect2) :
     _children {rect1, rect2}
 {}
 
 
 // HCompositeRectangle definitions
-HCompositeRectangle::HCompositeRectangle (ip::Rectangle::Ptr rect1,
-                                          ip::Rectangle::Ptr rect2) :
+HCompositeRectangle::HCompositeRectangle (ipa::Rectangle::Ptr rect1,
+                                          ipa::Rectangle::Ptr rect2) :
     CompositeRectangle (rect1, rect2)
 {
     double common_height = std::min (rect1->max_height (),
@@ -190,8 +191,8 @@ double HCompositeRectangle::max_width ()
 
 
 // VCompositeRectangle definitions
-VCompositeRectangle::VCompositeRectangle (ip::Rectangle::Ptr rect1,
-                                          ip::Rectangle::Ptr rect2) :
+VCompositeRectangle::VCompositeRectangle (ipa::Rectangle::Ptr rect1,
+                                          ipa::Rectangle::Ptr rect2) :
     CompositeRectangle (rect1, rect2)
 {
     double common_width = std::min (rect1->max_width (),
@@ -244,7 +245,7 @@ double VCompositeRectangle::max_width ()
 
 
 // BinPacker definitions
-ip::BinPacker::Ptr ip::BinPacker::create ()
+ipa::BinPacker::Ptr ipa::BinPacker::create ()
 {
     return BinPackerImpl::create ();
 }
@@ -272,7 +273,7 @@ void BinPackerImpl::run ()
     while (++rectangles.begin () != rectangles.end ()) {
         testcancelled ();
 
-        using ip::Rectangle;
+        using ipa::Rectangle;
         Rectangle::Ptr rect1 = rectangles.front ();
         rectangles.pop_front ();
 
@@ -284,12 +285,12 @@ void BinPackerImpl::run ()
     }
 }
 
-ip::Rectangle::Ptr BinPackerImpl::result ()
+ipa::Rectangle::Ptr BinPackerImpl::result ()
 {
     int nrectangles = rectangles.size ();
 
     if (nrectangles != 1)
-        return ip::Rectangle::Ptr ();
+        return ipa::Rectangle::Ptr ();
 
     return rectangles.front ();
 }
