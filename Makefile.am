@@ -4,8 +4,8 @@ imgpacker_SOURCES =				\
 	src/imgpack/application.hh		\
 	src/imgpack/util/logger.hh		\
 	src/imgpack/util/logger.cc		\
-	src/imgpack/thread-pool.hh		\
-	src/imgpack/thread-pool.cc		\
+	src/imgpack/util/thread-pool.hh		\
+	src/imgpack/util/thread-pool.cc		\
 	src/imgpack/async-operation.hh		\
 	src/imgpack/async-operation.cc		\
 	src/imgpack/gtkui/gtk-application.cc	\

@@ -1,8 +1,8 @@
 #include <unistd.h>
-#include <imgpack/thread-pool.hh>
+#include <imgpack/util/thread-pool.hh>
 #include <imgpack/util/logger.hh>
 
-using ImgPack::ThreadPool;
+using ImgPack::Util::ThreadPool;
 
 ThreadPool::ThreadPool () :
     Glib::ThreadPool (hardware_concurrency ())
