@@ -5,7 +5,7 @@
 #include <imgpack/application.hh>
 #include <imgpack/gtkui/image-list.hh>
 #include <imgpack/gtkui/pixbuf-loader.hh>
-#include <imgpack/logger.hh>
+#include <imgpack/util/logger.hh>
 #include <imgpack/gtkui/collage-viewer.hh>
 
 namespace ip = ImgPack;

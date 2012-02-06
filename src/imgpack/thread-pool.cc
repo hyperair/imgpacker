@@ -1,6 +1,6 @@
 #include <unistd.h>
 #include <imgpack/thread-pool.hh>
-#include <imgpack/logger.hh>
+#include <imgpack/util/logger.hh>
 
 using ImgPack::ThreadPool;
 

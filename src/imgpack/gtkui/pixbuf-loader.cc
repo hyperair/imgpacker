@@ -6,7 +6,7 @@
 #include <glibmm/i18n.h>
 #include <imgpack/gtkui/pixbuf-loader.hh>
 #include <imgpack/gtkui/main-window.hh>
-#include <imgpack/logger.hh>
+#include <imgpack/util/logger.hh>
 
 namespace ip = ImgPack;
 namespace ipg = ip::GtkUI;

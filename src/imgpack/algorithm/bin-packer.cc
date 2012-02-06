@@ -6,7 +6,7 @@
 #include <autosprintf.h>
 
 #include <imgpack/algorithm/bin-packer.hh>
-#include <imgpack/logger.hh>
+#include <imgpack/util/logger.hh>
 
 namespace ip = ImgPack;
 namespace ipa = ip::Algorithm;

@@ -2,9 +2,10 @@
 #include <unistd.h>
 
 #include <glibmm.h>
-#include <imgpack/logger.hh>
+#include <imgpack/util/logger.hh>
 
-using ImgPack::Logger;
+using ImgPack::Util::Logger;
+using ImgPack::Util::LogLine;
 
 namespace {
     std::string level_to_string (Logger::Level level)
@@ -31,8 +32,6 @@ void Logger::log (const std::string &context, Level level,
 }
 
 
-using ImgPack::LogLine;
-
 LogLine::LogLine (std::string context, Logger::Level level) :
     context (std::move (context)),
     level (level)

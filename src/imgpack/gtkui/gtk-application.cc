@@ -1,7 +1,7 @@
 #include <unordered_set>
 #include <glibmm/i18n.h>
 
-#include <imgpack/logger.hh>
+#include <imgpack/util/logger.hh>
 #include <imgpack/gtkui/gtk-application.hh>
 #include <imgpack/gtkui/main-window.hh>
 #include <config.h>

@@ -4,7 +4,7 @@
 
 #include <imgpack/gtkui/image-list.hh>
 #include <imgpack/gtkui/main-window.hh>
-#include <imgpack/logger.hh>
+#include <imgpack/util/logger.hh>
 
 namespace {
     class IconViewColumns : public Gtk::TreeModel::ColumnRecord,

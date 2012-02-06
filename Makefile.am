@@ -2,8 +2,8 @@ bin_PROGRAMS = imgpacker
 imgpacker_SOURCES =				\
 	src/imgpack/application.cc		\
 	src/imgpack/application.hh		\
-	src/imgpack/logger.hh			\
-	src/imgpack/logger.cc			\
+	src/imgpack/util/logger.hh		\
+	src/imgpack/util/logger.cc		\
 	src/imgpack/thread-pool.hh		\
 	src/imgpack/thread-pool.cc		\
 	src/imgpack/async-operation.hh		\
