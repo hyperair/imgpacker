@@ -4,7 +4,7 @@
 #include <nihpp/sharedptrcreator.hh>
 #include <gtkmm.h>
 
-#include <imgpack/async-operation.hh>
+#include <imgpack/util/async-operation.hh>
 
 namespace ImgPack
 {
@@ -13,7 +13,7 @@ namespace ImgPack
         class MainWindow;
         class StatusClient;
 
-        class PixbufLoader : public AsyncOperation,
+        class PixbufLoader : public Util::AsyncOperation,
                              public nihpp::SharedPtrCreator<PixbufLoader>
         {
         public:

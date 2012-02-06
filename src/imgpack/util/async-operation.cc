@@ -1,9 +1,12 @@
-#include <imgpack/async-operation.hh>
+#include <imgpack/util/async-operation.hh>
 #include <imgpack/util/logger.hh>
 
 namespace ip = ImgPack;
+namespace ipu = ImgPack::Util;
 
-struct ip::AsyncOperation::Private : sigc::trackable
+using ipu::AsyncOperation;
+
+struct AsyncOperation::Private : sigc::trackable
 {
     explicit Private (std::string &&description);
 
@@ -22,14 +25,14 @@ struct ip::AsyncOperation::Private : sigc::trackable
 
 
 // AsyncOperation definitions
-ip::AsyncOperation::AsyncOperation (std::string description) :
+AsyncOperation::AsyncOperation (std::string description) :
     _priv (new Private (std::move (description)))
 {
     connect_signal_finish (sigc::mem_fun (*this, &AsyncOperation::on_finish));
     connect_signal_abort (sigc::mem_fun (*this, &AsyncOperation::on_abort));
 }
 
-ip::AsyncOperation::~AsyncOperation () {abort ();}
+AsyncOperation::~AsyncOperation () {abort ();}
 
 namespace {
     class CleanupHelper
@@ -51,7 +54,7 @@ namespace {
     };
 }
 
-void ip::AsyncOperation::start ()
+void AsyncOperation::start ()
 {
     g_assert (!_priv->thread);
 
@@ -72,7 +75,7 @@ void ip::AsyncOperation::start ()
         }, true);
 }
 
-void ip::AsyncOperation::abort ()
+void AsyncOperation::abort ()
 {
     if (!is_running ())
         return;
@@ -85,29 +88,29 @@ void ip::AsyncOperation::abort ()
     Glib::signal_idle ().connect_once (_priv->aborted);
 }
 
-bool ip::AsyncOperation::is_running ()
+bool AsyncOperation::is_running ()
 {
     return _priv->thread;
 }
 
 sigc::connection
-ip::AsyncOperation::connect_signal_finish (sigc::slot<void> finish_slot)
+AsyncOperation::connect_signal_finish (sigc::slot<void> finish_slot)
 {
     return _priv->finished.connect (finish_slot);
 }
 
 sigc::connection
-ip::AsyncOperation::connect_signal_abort (sigc::slot<void> abort_slot)
+AsyncOperation::connect_signal_abort (sigc::slot<void> abort_slot)
 {
     return _priv->aborted.connect (abort_slot);
 }
 
-Glib::RefPtr<Gio::Cancellable> ip::AsyncOperation::cancellable ()
+Glib::RefPtr<Gio::Cancellable> AsyncOperation::cancellable ()
 {
     return _priv->cancellable;
 }
 
-void ip::AsyncOperation::testcancelled ()
+void AsyncOperation::testcancelled ()
 {
     if (_priv->cancellable->is_cancelled ())
         throw Cancelled ();
@@ -115,14 +118,14 @@ void ip::AsyncOperation::testcancelled ()
 
 
 // AsyncOperation::Cancelled definitions
-const char *ip::AsyncOperation::Cancelled::what () const throw ()
+const char *AsyncOperation::Cancelled::what () const throw ()
 {
     return "Async operation cancelled";
 }
 
 
 // AsyncOperation::Private definitions
-ip::AsyncOperation::Private::Private (std::string &&description) :
+AsyncOperation::Private::Private (std::string &&description) :
     description (description),
     thread (nullptr),
     cancellable (Gio::Cancellable::create ())
@@ -130,7 +133,7 @@ ip::AsyncOperation::Private::Private (std::string &&description) :
     thread_finish.connect (sigc::mem_fun (*this, &Private::on_thread_finish));
 }
 
-void ip::AsyncOperation::Private::cleanup_thread ()
+void AsyncOperation::Private::cleanup_thread ()
 {
     g_assert (thread);
 
@@ -138,7 +141,7 @@ void ip::AsyncOperation::Private::cleanup_thread ()
     thread = nullptr;
 }
 
-void ip::AsyncOperation::Private::on_thread_finish ()
+void AsyncOperation::Private::on_thread_finish ()
 {
     cleanup_thread ();
     Glib::signal_idle ().connect_once (finished);

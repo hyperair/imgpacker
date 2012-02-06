@@ -4,7 +4,7 @@
 #include <memory>
 #include <vector>
 
-#include <imgpack/async-operation.hh>
+#include <imgpack/util/async-operation.hh>
 
 namespace ImgPack
 {
@@ -37,7 +37,7 @@ namespace ImgPack
         };
 
 
-        class BinPacker : virtual public AsyncOperation
+        class BinPacker : virtual public Util::AsyncOperation
         {
         public:
             typedef std::shared_ptr<BinPacker> Ptr;
