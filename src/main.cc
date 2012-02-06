@@ -16,7 +16,7 @@ int main (int argc, char **argv)
         Glib::thread_init ();
 
     try {
-        ImgPack::Application (argc, argv).run ();
+        ImgPack::Application::create (argc, argv)->run ();
 
     } catch (std::exception &e) {
         std::cerr << "Uncaught exception in main(). Terminating with exception"

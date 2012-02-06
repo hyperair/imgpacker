@@ -1,29 +1,25 @@
 #ifndef IMGPACK_IMGPACK_APPLICATION_HH
 #define IMGPACK_IMGPACK_APPLICATION_HH
 
-#include <unordered_set>
 #include <memory>
-#include <gtkmm.h>
-#include <imgpack/gtkui/main-window.hh>
 
 namespace ImgPack
 {
-    class Application : public ::Gtk::Main
+    class Application
     {
     public:
-        Application (int &argc, char **&argv);
-        Application (const Application &) = delete;
+        typedef std::shared_ptr<Application> Ptr;
+        static Ptr create (int &argc, char **&argv);
+
         virtual ~Application () {}
 
-        void             run (); // Hide Gtk::Main::run
+        virtual void run ()          = 0;
+        virtual void show_about ()   = 0;
+        virtual void spawn_window () = 0;
 
-        void             show_about ();
-
-        void             spawn_window ();
-
-    private:
-        std::unordered_set<std::shared_ptr<GtkUI::MainWindow> >  windows;
-        Gtk::AboutDialog about_dialog;
+    protected:
+        Application () {}
+        Application (const Application &) = delete;
     };
 }
 
