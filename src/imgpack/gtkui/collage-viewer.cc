@@ -92,6 +92,7 @@ struct ipg::CollageViewer::Private : public sigc::trackable
 void ipg::CollageViewer::Private::on_binpack_finish ()
 {
     collage = packer->result ();
+    parent.set_size_request (collage->width () + 1, collage->height () + 1);
     parent.queue_draw ();
 }
 

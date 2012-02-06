@@ -268,12 +268,15 @@ ipg::MainWindow::Private::Private (Application &app, MainWindow &self) :
     main_vbox.pack_start (main_pane, Gtk::PACK_EXPAND_WIDGET);
 
     // Prepare main pane
-    Gtk::ScrolledWindow *scrolled = new Gtk::ScrolledWindow ();
-    scrolled->add (image_list);
-    scrolled->set_min_content_width (image_list.get_icon_width () + 20);
+    Gtk::ScrolledWindow *scrolled1 = new Gtk::ScrolledWindow ();
+    scrolled1->add (image_list);
+    scrolled1->set_min_content_width (image_list.get_icon_width () + 20);
 
-    main_pane.pack1 (*manage (scrolled), Gtk::SHRINK | Gtk::FILL);
-    main_pane.pack2 (viewer, Gtk::EXPAND | Gtk::FILL);
+    main_pane.pack1 (*manage (scrolled1), Gtk::SHRINK | Gtk::FILL);
+
+    Gtk::ScrolledWindow *scrolled2 = new Gtk::ScrolledWindow ();
+    scrolled2->add (viewer);
+    main_pane.pack2 (*manage (scrolled2), Gtk::EXPAND | Gtk::FILL);
 
     // Prepare statusbar
     statusbar ().pack_end (progressbar (), Gtk::PACK_SHRINK);
