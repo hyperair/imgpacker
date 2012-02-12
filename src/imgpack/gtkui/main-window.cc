@@ -7,6 +7,7 @@
 #include <imgpack/gtkui/pixbuf-loader.hh>
 #include <imgpack/util/logger.hh>
 #include <imgpack/gtkui/collage-viewer.hh>
+#include <imgpack/gtkui/collage-treeview.hh>
 
 namespace ip = ImgPack;
 namespace ipg = ip::GtkUI;
@@ -240,9 +241,11 @@ struct ipg::MainWindow::Private : sigc::trackable
 
     Gtk::VBox                     main_vbox;
     Gtk::HPaned                   main_pane;
+    Gtk::Notebook                 sidebar_notebook;
 
     ImageList                     image_list;
     CollageViewer                 viewer;
+    CollageTreeView               layout_editor;
 
     StatusController              status;
     Gtk::Statusbar &statusbar ()        {return status.statusbar;}
@@ -280,7 +283,9 @@ ipg::MainWindow::Private::Private (Application &app, MainWindow &self) :
     scrolled1->add (image_list);
     scrolled1->set_min_content_width (image_list.get_icon_width () + 30);
 
-    main_pane.pack1 (*manage (scrolled1), Gtk::SHRINK | Gtk::FILL);
+    sidebar_notebook.append_page (*manage (scrolled1), _("Image List"));
+    sidebar_notebook.append_page (layout_editor, _("Layout Editor"));
+    main_pane.pack1 (sidebar_notebook, Gtk::SHRINK | Gtk::FILL);
 
     Gtk::ScrolledWindow *scrolled2 = new Gtk::ScrolledWindow ();
     scrolled2->add (viewer);
