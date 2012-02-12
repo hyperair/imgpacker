@@ -1,6 +1,7 @@
 #ifndef IMGPACK_GTKUI_COLLAGE_TREEVIEW_HH
 #define IMGPACK_GTKUI_COLLAGE_TREEVIEW_HH
 
+#include <memory>
 #include <gtkmm.h>
 
 namespace ImgPack
@@ -14,6 +15,10 @@ namespace ImgPack
         public:
             CollageTreeView ();
             virtual ~CollageTreeView ();
+
+        private:
+            class Private;
+            std::unique_ptr<Private> _priv;
         };
     }
 }
