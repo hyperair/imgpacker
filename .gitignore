@@ -11,6 +11,8 @@ missing
 stamp-h1
 *.o
 /imgpacker
+/imgpacker-unity
+/unity-build.cc
 /po/Makefile*
 /po/POTFILES
 /po/*.pot
