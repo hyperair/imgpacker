@@ -1,4 +1,6 @@
 bin_PROGRAMS = imgpacker
+EXTRA_PROGRAMS = imgpacker-unity
+
 imgpacker_SOURCES =				\
 	src/imgpack/application.cc		\
 	src/imgpack/application.hh		\
@@ -23,6 +25,15 @@ imgpacker_SOURCES =				\
 	src/imgpack/algorithm/bin-packer.hh	\
 	src/imgpack/algorithm/bin-packer.cc	\
 	src/main.cc
+
+imgpacker_unity_SOURCES = unity-build.cc
+imgpacker_unity_CXXFLAGS = $(imgpacker_CXXFLAGS)
+imgpacker_unity_LDADD = $(imgpacker_LDADD)
+
+unity-build.cc: Makefile
+	for file in $(filter %.cc, $(imgpacker_SOURCES)); do	\
+		echo "#include <$$file>";			\
+	done > $@
 
 imgpacker_CXXFLAGS =						\
 	$(CXX0X_FLAG)						\
@@ -67,7 +78,7 @@ doc_DATA =					\
 	doc/html/index.html			\
 	doc/xml/index.xml
 
-CLEANFILES = $(dir $(DOC_INDICES))
+CLEANFILES = $(dir $(DOC_INDICES)) unity-build.cc
 
 .PHONY: run update-po
 
