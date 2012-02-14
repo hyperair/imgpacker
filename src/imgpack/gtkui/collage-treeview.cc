@@ -1,4 +1,5 @@
 #include <imgpack/gtkui/collage-treeview.hh>
+#include <imgpack/util/logger.hh>
 #include <nihpp/glib/refptrcreator.hh>
 
 namespace ip = ImgPack;
@@ -8,6 +9,7 @@ using ipg::CollageTreeView;
 
 namespace {
     class RectangleTreeModel :
+        public Glib::Object,
         public Gtk::TreeModel,
         public nihpp::Glib::RefPtrCreator<RectangleTreeModel>
     {
@@ -20,6 +22,8 @@ namespace {
         virtual Gtk::TreeModelFlags get_flags_vfunc () const;
 
         virtual int get_n_columns_vfunc () const;
+
+        virtual GType get_column_type_vfunc (int index) const;
 
         virtual bool iter_next_vfunc (const iterator &iter,
                                       iterator &iter_next) const;
@@ -53,7 +57,7 @@ namespace {
 }
 
 RectangleTreeModel::RectangleTreeModel () :
-    Glib::ObjectBase (typeid (*this))
+    Glib::ObjectBase (typeid (RectangleTreeModel))
 {
 }
 
@@ -69,6 +73,12 @@ Gtk::TreeModelFlags RectangleTreeModel::get_flags_vfunc () const
 int RectangleTreeModel::get_n_columns_vfunc () const
 {
     return 1;
+}
+
+GType RectangleTreeModel::get_column_type_vfunc (int index) const
+{
+    g_assert (index == 0);
+    return G_TYPE_STRING;
 }
 
 bool RectangleTreeModel::iter_next_vfunc (const iterator &,
@@ -118,15 +128,18 @@ RectangleTreeModel::Path RectangleTreeModel::get_path_vfunc (const iterator &)
 
 void RectangleTreeModel::get_value_vfunc (const iterator &, int,
                                           Glib::ValueBase &) const
-{}
+{
+}
 
 void RectangleTreeModel::set_value_impl (const iterator &, int,
                                          const Glib::ValueBase &)
-{}
+{
+}
 
 void RectangleTreeModel::get_value_impl (const iterator &, int,
                                          Glib::ValueBase &) const
-{}
+{
+}
 
 
 struct CollageTreeView::Private
