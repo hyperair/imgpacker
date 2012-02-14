@@ -20,6 +20,8 @@ imgpacker_SOURCES =				\
 	src/imgpack/gtkui/collage-viewer.cc	\
 	src/imgpack/algorithm/bin-packer.hh	\
 	src/imgpack/algorithm/bin-packer.cc	\
+	src/imgpack/algorithm/rectangles.hh	\
+	src/imgpack/algorithm/rectangles.cc	\
 	src/main.cc
 
 imgpacker_CXXFLAGS =						\

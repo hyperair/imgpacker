@@ -5,38 +5,12 @@
 #include <vector>
 
 #include <imgpack/util/async-operation.hh>
+#include <imgpack/algorithm/rectangles.hh>
 
 namespace ImgPack
 {
     namespace Algorithm
     {
-        class Rectangle
-        {
-        public:
-            typedef std::shared_ptr<Rectangle> Ptr;
-            enum Orientation {INVALID, HORIZONTAL, VERTICAL};
-
-            virtual ~Rectangle () {}
-
-            virtual double width () = 0;
-            virtual void width (double) = 0;
-
-            virtual double height () = 0;
-            virtual void height (double) = 0;
-
-            virtual double max_width () = 0;
-            virtual double max_height () = 0;
-
-            // overridden if Rectangle has children
-            virtual Orientation orientation () {return INVALID;}
-            virtual std::vector<Ptr> children () {return {};}
-            double aspect_ratio () {return width () / height ();}
-
-        protected:
-            Rectangle (){}
-        };
-
-
         class BinPacker : virtual public Util::AsyncOperation
         {
         public:
