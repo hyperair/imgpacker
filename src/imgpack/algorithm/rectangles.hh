@@ -14,7 +14,7 @@ namespace ImgPack
         {
         public:
             typedef std::shared_ptr<Rectangle> Ptr;
-            enum Orientation {INVALID, HORIZONTAL, VERTICAL};
+            enum Orientation {NONE, HORIZONTAL, VERTICAL};
 
             virtual ~Rectangle () {}
 
@@ -28,8 +28,10 @@ namespace ImgPack
             virtual double max_height () = 0;
 
             // overridden if Rectangle has children
-            virtual Orientation orientation () {return INVALID;}
-            virtual std::vector<Ptr> children () {return {};}
+            virtual Orientation orientation () {return NONE;}
+            virtual Ptr child1 () {return Ptr ();}
+            virtual Ptr child2 () {return Ptr ();}
+
             double aspect_ratio () {return width () / height ();}
 
         protected:
@@ -45,10 +47,11 @@ namespace ImgPack
             CompositeRectangle (Rectangle::Ptr rect1, Rectangle::Ptr rect2);
             virtual ~CompositeRectangle () {}
 
-            virtual std::vector<Rectangle::Ptr> children () {return _children;}
+            virtual Rectangle::Ptr child1 () {return _children.first;}
+            virtual Rectangle::Ptr child2 () {return _children.second;}
 
         protected:
-            std::vector<Rectangle::Ptr> _children;
+            std::pair<Rectangle::Ptr, Rectangle::Ptr> _children;
         };
 
         class HCompositeRectangle :
@@ -58,7 +61,7 @@ namespace ImgPack
         public:
             HCompositeRectangle (Rectangle::Ptr rect1, Rectangle::Ptr rect2);
 
-            virtual double height () {return _children.front ()->height ();}
+            virtual double height () {return child1 ()->height ();}
             virtual double width ();
 
             virtual void height (double new_height);
@@ -78,7 +81,7 @@ namespace ImgPack
             VCompositeRectangle (Rectangle::Ptr rect1, Rectangle::Ptr rect2);
 
             virtual double height ();
-            virtual double width () {return _children.front ()->width ();}
+            virtual double width () {return child1 ()->width ();}
 
             virtual void height (double new_height);
             virtual void width (double new_width);

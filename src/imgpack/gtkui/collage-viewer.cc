@@ -201,8 +201,7 @@ bool ipg::CollageViewer::on_draw (const Cairo::RefPtr<Cairo::Context> &cr)
         double x = rect.x;
         double y = rect.y;
 
-        auto children = rect.rect->children ();
-        if (children.empty ()) {
+        if (rect.rect->orientation () == ipa::Rectangle::NONE) { // leaf
             PixbufRectangle::Ptr pixbufrect =
                 std::static_pointer_cast<PixbufRectangle> (rect.rect);
 
@@ -219,7 +218,13 @@ bool ipg::CollageViewer::on_draw (const Cairo::RefPtr<Cairo::Context> &cr)
             cr->restore ();
 
         } else {
+            std::vector<ipa::Rectangle::Ptr> children =
+                {rect.rect->child1 (), rect.rect->child2 ()};
+
             for (auto i : children) {
+                if (!i)
+                    continue;
+
                 drawq.push ({i, x, y});
 
                 switch (rect.rect->orientation ()) {
@@ -231,7 +236,7 @@ bool ipg::CollageViewer::on_draw (const Cairo::RefPtr<Cairo::Context> &cr)
                     y += i->height ();
                     break;
 
-                case ipa::Rectangle::INVALID:
+                case ipa::Rectangle::NONE:
                     break;
 
                 default:

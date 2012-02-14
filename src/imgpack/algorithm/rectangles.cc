@@ -32,12 +32,7 @@ HCompositeRectangle::HCompositeRectangle (ipa::Rectangle::Ptr rect1,
 
 double HCompositeRectangle::width ()
 {
-    double width = 0;
-
-    for (auto i : _children)
-        width += i->width ();
-
-    return width;
+    return child1 ()->width () + child2 ()->width ();
 }
 
 void HCompositeRectangle::height (double new_height)
@@ -45,8 +40,8 @@ void HCompositeRectangle::height (double new_height)
     LOG(info) << "Scaling composite by height: "
               << height () << " -> " << new_height;
 
-    for (auto i : _children)
-        i->height (new_height);
+    child1 ()->height (new_height);
+    child2 ()->height (new_height);
 }
 
 void HCompositeRectangle::width (double new_width)
@@ -57,12 +52,7 @@ void HCompositeRectangle::width (double new_width)
 
 double HCompositeRectangle::max_height ()
 {
-    double retval = std::numeric_limits<double>::max ();
-
-    for (auto i : _children)
-        retval = std::min (retval, i->max_height ());
-
-    return retval;
+    return std::min (child1 ()->max_height (), child2 ()->max_height ());
 }
 
 double HCompositeRectangle::max_width ()
@@ -87,20 +77,15 @@ VCompositeRectangle::VCompositeRectangle (ipa::Rectangle::Ptr rect1,
 
 double VCompositeRectangle::height ()
 {
-    double height = 0;
-
-    for (auto i : _children)
-        height += i->height ();
-
-    return height;
+    return child1 ()->height () + child2 ()->height ();
 }
 
 void VCompositeRectangle::width (double new_width)
 {
     LOG(info) << "Scaling composite by width: "
               << width () << " -> " << new_width;
-    for (auto i : _children)
-        i->width (new_width);
+    child1 ()->width (new_width);
+    child2 ()->width (new_width);
 }
 
 void VCompositeRectangle::height (double new_height)
@@ -116,10 +101,5 @@ double VCompositeRectangle::max_height ()
 
 double VCompositeRectangle::max_width ()
 {
-    double retval = std::numeric_limits<double>::max ();
-
-    for (auto i : _children)
-        retval = std::min (retval, i->max_width ());
-
-    return retval;
+    return std::min (child1 ()->max_width (), child2 ()->max_width ());
 }
