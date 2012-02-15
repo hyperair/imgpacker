@@ -10,6 +10,8 @@ namespace ImgPack
 {
     namespace Algorithm
     {
+        class CompositeRectangle;
+
         class Rectangle
         {
         public:
@@ -32,14 +34,24 @@ namespace ImgPack
             virtual Ptr child1 () {return Ptr ();}
             virtual Ptr child2 () {return Ptr ();}
 
+            virtual void child1 (Ptr child);
+            virtual void child2 (Ptr child);
+
+            std::shared_ptr<CompositeRectangle> parent () const;
+            void parent (CompositeRectangle *new_parent);
+
             double aspect_ratio () {return width () / height ();}
 
         protected:
-            Rectangle (){}
+            Rectangle () : _parent (nullptr) {}
+
+        private:
+            CompositeRectangle *_parent;
         };
 
         class CompositeRectangle :
-            public Rectangle
+            public Rectangle,
+            public std::enable_shared_from_this<CompositeRectangle>
         {
         public:
             typedef std::shared_ptr<CompositeRectangle> Ptr;
@@ -47,8 +59,13 @@ namespace ImgPack
             CompositeRectangle (Rectangle::Ptr rect1, Rectangle::Ptr rect2);
             virtual ~CompositeRectangle () {}
 
-            virtual Rectangle::Ptr child1 () {return _children.first;}
-            virtual Rectangle::Ptr child2 () {return _children.second;}
+            virtual Rectangle::Ptr child1 ();
+            virtual Rectangle::Ptr child2 ();
+
+            virtual void child1 (Rectangle::Ptr child);
+            virtual void child2 (Rectangle::Ptr child);
+
+            void orphan_child (Rectangle &child);
 
         protected:
             std::pair<Rectangle::Ptr, Rectangle::Ptr> _children;
@@ -91,7 +108,6 @@ namespace ImgPack
 
             virtual Orientation orientation () {return VERTICAL;}
         };
-
     }
 }
 

@@ -1,6 +1,7 @@
 #include <imgpack/algorithm/rectangles.hh>
 #include <imgpack/util/logger.hh>
 #include <limits>
+#include <glibmm.h>
 
 namespace ip = ImgPack;
 namespace ipa = ip::Algorithm;
@@ -10,10 +11,84 @@ using ipa::CompositeRectangle;
 using ipa::HCompositeRectangle;
 using ipa::VCompositeRectangle;
 
-CompositeRectangle::CompositeRectangle (ipa::Rectangle::Ptr rect1,
-                                        ipa::Rectangle::Ptr rect2) :
+CompositeRectangle::Ptr Rectangle::parent () const
+{
+    return _parent ? _parent->shared_from_this () : CompositeRectangle::Ptr ();
+}
+
+void Rectangle::parent (CompositeRectangle *new_parent)
+{
+    if (_parent == new_parent)
+        return;
+
+    if (_parent)
+        _parent->orphan_child (*this);
+
+    _parent = new_parent;
+}
+
+void Rectangle::child1 (Ptr)
+{
+    g_assert_not_reached ();
+}
+
+void Rectangle::child2 (Ptr)
+{
+    g_assert_not_reached ();
+}
+
+
+CompositeRectangle::CompositeRectangle (Rectangle::Ptr rect1,
+                                        Rectangle::Ptr rect2) :
     _children {rect1, rect2}
-{}
+{
+    rect1->parent (this);
+    rect2->parent (this);
+}
+
+Rectangle::Ptr CompositeRectangle::child1 ()
+{
+    return _children.first;
+}
+
+Rectangle::Ptr CompositeRectangle::child2 ()
+{
+    return _children.second;
+}
+
+namespace {
+    void set_child (Rectangle::Ptr &dest, Rectangle::Ptr &child,
+                    CompositeRectangle &parent)
+    {
+        if (dest == child)
+            return;
+
+        Rectangle::Ptr old_child = std::move (dest);
+
+        old_child->parent (nullptr);
+        child->parent (&parent);
+        dest = std::move (child);
+    }
+}
+
+void CompositeRectangle::child1 (Rectangle::Ptr child)
+{
+    set_child (_children.first, child, *this);
+}
+
+void CompositeRectangle::child2 (Rectangle::Ptr child)
+{
+    set_child (_children.second, child, *this);
+}
+
+void CompositeRectangle::orphan_child (Rectangle &child)
+{
+    if (child1 ().get () == &child)
+        child1 (Rectangle::Ptr ());
+
+    else if (child2 ().get () == &child)
+        child2 (Rectangle::Ptr ());
+}
 
 
 // HCompositeRectangle definitions
