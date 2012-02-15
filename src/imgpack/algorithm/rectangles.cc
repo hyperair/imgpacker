@@ -74,11 +74,13 @@ namespace {
 void CompositeRectangle::child1 (Rectangle::Ptr child)
 {
     set_child (_children.first, child, *this);
+    recalculate_size ();
 }
 
 void CompositeRectangle::child2 (Rectangle::Ptr child)
 {
     set_child (_children.second, child, *this);
+    recalculate_size ();
 }
 
 void CompositeRectangle::orphan_child (Rectangle &child)
@@ -90,19 +92,23 @@ void CompositeRectangle::orphan_child (Rectangle &child)
         child2 (Rectangle::Ptr ());
 }
 
+void CompositeRectangle::recalculate_size ()
+{
+    if (parent ())
+        parent ()->recalculate_size ();
+
+    else
+        recalculate_size_impl ();
+}
+
+
 
 // HCompositeRectangle definitions
 HCompositeRectangle::HCompositeRectangle (ipa::Rectangle::Ptr rect1,
                                           ipa::Rectangle::Ptr rect2) :
     CompositeRectangle (rect1, rect2)
 {
-    double common_height = std::min (rect1->max_height (),
-                                     rect2->max_height ());
-
-    LOG(info) << "Equalizing height to " << common_height;
-
-    rect1->height (common_height);
-    rect2->height (common_height);
+    recalculate_size ();
 }
 
 double HCompositeRectangle::width ()
@@ -135,19 +141,24 @@ double HCompositeRectangle::max_width ()
     return aspect_ratio () * max_height ();
 }
 
+void HCompositeRectangle::recalculate_size_impl ()
+{
+    double common_height = std::min (child1 ()->max_height (),
+                                     child2 ()->max_height ());
+
+    LOG(info) << "Equalizing height to " << common_height;
+
+    child1 ()->height (common_height);
+    child2 ()->height (common_height);
+}
+
 
 // VCompositeRectangle definitions
 VCompositeRectangle::VCompositeRectangle (ipa::Rectangle::Ptr rect1,
                                           ipa::Rectangle::Ptr rect2) :
     CompositeRectangle (rect1, rect2)
 {
-    double common_width = std::min (rect1->max_width (),
-                                    rect2->max_width ());
-
-    LOG(info) << "Equalizing width to " << common_width;
-
-    rect1->width (common_width);
-    rect2->width (common_width);
+    recalculate_size ();
 }
 
 double VCompositeRectangle::height ()
@@ -177,4 +188,15 @@ double VCompositeRectangle::max_height ()
 double VCompositeRectangle::max_width ()
 {
     return std::min (child1 ()->max_width (), child2 ()->max_width ());
+}
+
+void VCompositeRectangle::recalculate_size_impl ()
+{
+    double common_width = std::min (child1 ()->max_width (),
+                                    child2 ()->max_width ());
+
+    LOG(info) << "Equalizing width to " << common_width;
+
+    child1 ()->width (common_width);
+    child2 ()->width (common_width);
 }

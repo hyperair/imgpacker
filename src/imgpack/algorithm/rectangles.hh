@@ -49,6 +49,7 @@ namespace ImgPack
             CompositeRectangle *_parent;
         };
 
+
         class CompositeRectangle :
             public Rectangle,
             public std::enable_shared_from_this<CompositeRectangle>
@@ -67,9 +68,12 @@ namespace ImgPack
 
             void orphan_child (Rectangle &child);
 
+            void recalculate_size ();
         protected:
+            virtual void recalculate_size_impl () = 0;
             std::pair<Rectangle::Ptr, Rectangle::Ptr> _children;
         };
+
 
         class HCompositeRectangle :
             public CompositeRectangle,
@@ -88,7 +92,11 @@ namespace ImgPack
             virtual double max_width ();
 
             virtual Orientation orientation () {return HORIZONTAL;}
+
+        private:
+            virtual void recalculate_size_impl ();
         };
+
 
         class VCompositeRectangle :
             public CompositeRectangle,
@@ -107,6 +115,9 @@ namespace ImgPack
             virtual double max_width ();
 
             virtual Orientation orientation () {return VERTICAL;}
+
+        private:
+            virtual void recalculate_size_impl ();
         };
     }
 }
