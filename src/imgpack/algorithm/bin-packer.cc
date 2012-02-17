@@ -12,6 +12,11 @@ namespace ip = ImgPack;
 namespace ipa = ip::Algorithm;
 
 namespace {
+    double le1_ratio (const double v1, const double v2)
+    {
+        return (v1 < v2) ? v1 / v2 : v2 / v1;
+    }
+
     // Combines two rectangles either horizontally or vertically by equalizing
     // either width or height
     ipa::CompositeRectangle::Ptr combine (ipa::Rectangle::Ptr rect1,
@@ -34,14 +39,16 @@ namespace {
 
         double horizontal_ratio = rect1_aspect + rect2_aspect;
 
-        double vertical_ratiodist =
-            std::abs (target_aspect - vertical_ratio);
+        double vertical_ratio_ratio = le1_ratio (target_aspect,
+                                                 vertical_ratio);
 
-        double horizontal_ratiodist =
-            std::abs (target_aspect - horizontal_ratio);
+        double horizontal_ratio_ratio = le1_ratio (target_aspect,
+                                                   horizontal_ratio);
 
+        g_assert (vertical_ratio_ratio <= 1);
+        g_assert (horizontal_ratio_ratio <= 1);
 
-        if (vertical_ratiodist < horizontal_ratiodist)
+        if (vertical_ratio_ratio > horizontal_ratio_ratio)
             return ipa::VCompositeRectangle::create (rect1, rect2);
 
         else
