@@ -1,9 +1,11 @@
 #include <imgpack/gtkui/collage-treeview.hh>
 #include <imgpack/util/logger.hh>
+#include <imgpack/algorithm/rectangles.hh>
 #include <nihpp/glib/refptrcreator.hh>
 
 namespace ip = ImgPack;
-namespace ipg = ImgPack::GtkUI;
+namespace ipg = ip::GtkUI;
+namespace ipa = ip::Algorithm;
 
 using ipg::CollageTreeView;
 
@@ -48,14 +50,33 @@ namespace {
         virtual void get_value_vfunc (const iterator &iter, int column,
                                       Glib::ValueBase &value) const;
 
-        virtual void set_value_impl (const iterator &row, int column,
-                                     const Glib::ValueBase &value);
-
-        virtual void get_value_impl (const iterator &row, int column,
-                                     Glib::ValueBase &value) const;
+        ipa::Rectangle::Ptr collage_root;
     };
+
+    ipa::Rectangle::Ptr iter_to_rect (const RectangleTreeModel::iterator & iter)
+    {
+        const GtkTreeIter *iter_gobj = iter->gobj ();
+
+        ipa::Rectangle *rect =
+            static_cast<ipa::Rectangle *> (iter_gobj->user_data);
+
+        return rect->shared_from_this ();
+    }
+
+    bool rect_to_iter (const ipa::Rectangle::Ptr rect,
+                       RectangleTreeModel::iterator &iter)
+    {
+        if (!rect)
+            return false;
+
+        GtkTreeIter *rawiter = iter.gobj ();
+        rawiter->user_data = rect.get ();
+
+        return true;
+    }
 }
 
+
 RectangleTreeModel::RectangleTreeModel () :
     Glib::ObjectBase (typeid (RectangleTreeModel))
 {
@@ -77,68 +98,96 @@ int RectangleTreeModel::get_n_columns_vfunc () const
 
 GType RectangleTreeModel::get_column_type_vfunc (int index) const
 {
+    // We only show a string.
     g_assert (index == 0);
     return G_TYPE_STRING;
 }
 
-bool RectangleTreeModel::iter_next_vfunc (const iterator &,
-                                          iterator &) const
+bool RectangleTreeModel::iter_next_vfunc (const iterator &iter,
+                                          iterator &iter_next) const
 {
+    const ipa::Rectangle::Ptr rect = iter_to_rect (iter);
+    const ipa::Rectangle::Ptr parent = rect->parent ();
+
+    if (!parent)
+        return false;
+
+    if (parent->child1 () == rect)
+        return rect_to_iter (parent->child2 (), iter_next);
+
+    else
+        g_assert (parent->child2 () == rect);
+
     return false;
 }
 
-bool RectangleTreeModel::iter_children_vfunc (const iterator &,
-                                              iterator &) const
+bool RectangleTreeModel::iter_children_vfunc (const iterator &iter,
+                                              iterator &iter_child) const
 {
-    return false;
+    const ipa::Rectangle::Ptr rect = iter_to_rect (iter);
+    const ipa::Rectangle::Ptr child = rect->child1 ();
+
+    return rect_to_iter (child, iter_child);
 }
 
-bool RectangleTreeModel::iter_parent_vfunc  (const iterator &,
-                                             iterator &) const
+bool RectangleTreeModel::iter_parent_vfunc  (const iterator &iter,
+                                             iterator &iter_parent) const
 {
-    return false;
+    const ipa::Rectangle::Ptr rect = iter_to_rect (iter);
+    const ipa::Rectangle::Ptr parent = rect->parent ();
+
+    return rect_to_iter (parent, iter_parent);
 }
 
-bool RectangleTreeModel::iter_nth_child_vfunc (const iterator &, int,
-                                               iterator &) const
+bool RectangleTreeModel::iter_nth_child_vfunc (const iterator &iter,
+                                               int n,
+                                               iterator &iter_child) const
 {
-    return false;
+    if (n < 0 || n > 1)
+        return false;
+
+    const ipa::Rectangle::Ptr rect = iter_to_rect (iter);
+    const ipa::Rectangle::Ptr child =
+        (n == 0) ? rect->child1 () : rect->child2 ();
+
+    return rect_to_iter (child, iter_child);
 }
 
-bool RectangleTreeModel::iter_has_child_vfunc (const iterator &) const
+bool RectangleTreeModel::iter_has_child_vfunc (const iterator &iter) const
 {
-    return false;
+    const ipa::Rectangle::Ptr rect = iter_to_rect (iter);
+
+    return bool (rect->child1 ());
 }
 
-int RectangleTreeModel::iter_n_children_vfunc (const iterator &) const
+int RectangleTreeModel::iter_n_children_vfunc (const iterator &iter) const
 {
-    return 0;
+    return iter_has_child_vfunc (iter) ? 2 : 0;
 }
 
 int RectangleTreeModel::iter_n_root_children_vfunc () const
 {
-    return 0;
+    return collage_root ? 1 : 0;
 }
 
-RectangleTreeModel::Path RectangleTreeModel::get_path_vfunc (const iterator &)
-    const
+RectangleTreeModel::Path
+RectangleTreeModel::get_path_vfunc (const iterator &) const
 {
-    return Path ();
+    return Path ();             // FIXME: implement
 }
 
-void RectangleTreeModel::get_value_vfunc (const iterator &, int,
-                                          Glib::ValueBase &) const
+void RectangleTreeModel::get_value_vfunc (const iterator &iter, int col,
+                                          Glib::ValueBase &value) const
 {
-}
+    g_assert (col == 0);
 
-void RectangleTreeModel::set_value_impl (const iterator &, int,
-                                         const Glib::ValueBase &)
-{
-}
+    const ipa::Rectangle::Ptr rect = iter_to_rect (iter);
 
-void RectangleTreeModel::get_value_impl (const iterator &, int,
-                                         Glib::ValueBase &) const
-{
+    Glib::Value<Glib::ustring> str_value;
+    str_value.set (rect->description ());
+
+    value.init (Glib::Value<Glib::ustring>::value_type ());
+    value = str_value;
 }
 
 

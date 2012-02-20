@@ -1,6 +1,7 @@
 #ifndef IMGPACK_ALGORITHMS_RECTANGLES_HH
 #define IMGPACK_ALGORITHMS_RECTANGLES_HH
 
+#include <string>
 #include <memory>
 #include <vector>
 
@@ -45,6 +46,8 @@ namespace ImgPack
             void parent (CompositeRectangle *new_parent);
 
             double aspect_ratio () {return width () / height ();}
+
+            virtual std::string description () = 0;
 
         protected:
             Rectangle () : _parent (nullptr) {}
@@ -102,6 +105,8 @@ namespace ImgPack
 
             virtual Orientation orientation () {return HORIZONTAL;}
 
+            virtual std::string description ();
+
         private:
             virtual void recalculate_size_impl ();
         };
@@ -126,6 +131,8 @@ namespace ImgPack
             virtual Rectangle::Ptr find_rect (double x, double y);
 
             virtual Orientation orientation () {return VERTICAL;}
+
+            virtual std::string description ();
 
         private:
             virtual void recalculate_size_impl ();

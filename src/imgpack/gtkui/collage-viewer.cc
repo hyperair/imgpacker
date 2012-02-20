@@ -37,6 +37,8 @@ namespace {
         virtual double max_width () {return _pixbuf->get_width ();}
         virtual double max_height () {return _pixbuf->get_height ();}
 
+        virtual std::string description () {return "Pixbuf";}
+
         Glib::RefPtr<Gdk::Pixbuf> orig_pixbuf () const {return _pixbuf;}
         Glib::RefPtr<Gdk::Pixbuf> pixbuf () const;
 

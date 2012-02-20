@@ -174,6 +174,11 @@ HCompositeRectangle::find_rect (const double x, const double y)
     return child2 ()->find_rect (x - child1 ()->width (), y);
 }
 
+std::string HCompositeRectangle::description ()
+{
+    return std::string ("HCompositeRectangle");
+}
+
 
 // VCompositeRectangle definitions
 VCompositeRectangle::VCompositeRectangle (ipa::Rectangle::Ptr rect1,
@@ -210,6 +215,11 @@ double VCompositeRectangle::max_height ()
 double VCompositeRectangle::max_width ()
 {
     return std::min (child1 ()->max_width (), child2 ()->max_width ());
+}
+
+std::string VCompositeRectangle::description ()
+{
+    return "VCompositeRectangle";
 }
 
 void VCompositeRectangle::recalculate_size_impl ()
