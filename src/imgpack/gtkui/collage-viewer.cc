@@ -124,6 +124,8 @@ struct ipg::CollageViewer::Private : public sigc::trackable
     ipa::Rectangle::Ptr  collage;
     ipa::Rectangle::Ptr  selected;
 
+    sigc::signal<void, ipa::Rectangle::Ptr> signal_update;
+
     void on_binpack_finish ();
 };
 
@@ -196,6 +198,11 @@ void ipg::CollageViewer::export_to_file (const Glib::RefPtr<Gio::File> &file,
     auto stream = file->replace ();
     gsize bytes_written;
     stream->write_all (buffer, size, bytes_written);
+}
+
+sigc::connection ipg::CollageViewer::connect_signal_update (UpdateSlot slot)
+{
+    return _priv->signal_update.connect (slot);
 }
 
 namespace {
