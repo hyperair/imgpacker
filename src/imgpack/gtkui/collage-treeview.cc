@@ -171,9 +171,31 @@ int RectangleTreeModel::iter_n_root_children_vfunc () const
 }
 
 RectangleTreeModel::Path
-RectangleTreeModel::get_path_vfunc (const iterator &) const
+RectangleTreeModel::get_path_vfunc (const iterator &iter) const
 {
-    return Path ();             // FIXME: implement
+    Path path;
+
+    ipa::Rectangle::Ptr rect = iter_to_rect (iter);
+    ipa::Rectangle::Ptr parent;
+
+    while (parent = rect->parent ()) {
+        int offset;
+
+        if (parent->child1 () == rect)
+            offset = 0;
+
+        else if (parent->child2 () == rect)
+            offset = 1;
+
+        else
+            g_assert_not_reached ();
+
+        path.push_front (offset);
+    }
+
+    path.push_front (0);        // for root node
+
+    return path;
 }
 
 void RectangleTreeModel::get_value_vfunc (const iterator &iter, int col,
