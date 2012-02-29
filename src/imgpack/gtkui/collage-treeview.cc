@@ -121,11 +121,14 @@ bool RectangleTreeModel::get_iter_vfunc (const Path &path, iterator &iter) const
 {
     ipa::Rectangle::Ptr rect;
 
+    bool visited_collage_root = false;
+
     for (int i : path) {
         if (!rect)
-            if (collage_root) {
+            if (collage_root && !visited_collage_root) {
                 g_assert (i == 0);
                 rect = collage_root;
+                visited_collage_root = true;
 
             } else
                 return false;
