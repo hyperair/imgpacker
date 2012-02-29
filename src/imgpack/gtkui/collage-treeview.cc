@@ -292,6 +292,16 @@ CollageTreeView::CollageTreeView () :
     _priv (new Private)
 {
     set_model (_priv->model);
+
+    Gtk::TreeModelColumnRecord foo;
+    Gtk::TreeModelColumn<Glib::ustring> col;
+
+    foo.add (col);
+
+    append_column ("", col);
+
+    set_show_expanders (true);
+    set_headers_visible (false);
 }
 
 CollageTreeView::~CollageTreeView () {}
