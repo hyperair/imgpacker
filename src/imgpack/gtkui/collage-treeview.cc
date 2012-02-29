@@ -238,7 +238,7 @@ RectangleTreeModel::get_path_vfunc (const iterator &iter) const
     ipa::Rectangle::Ptr rect = iter_to_rect (iter);
     ipa::Rectangle::Ptr parent;
 
-    while (parent = rect->parent ()) {
+    while ((parent = rect->parent ()) && parent != collage_root) {
         int offset;
 
         if (parent->child1 () == rect)
@@ -251,6 +251,8 @@ RectangleTreeModel::get_path_vfunc (const iterator &iter) const
             g_assert_not_reached ();
 
         path.push_front (offset);
+
+        rect = parent;
     }
 
     path.push_front (0);        // for root node
