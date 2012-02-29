@@ -19,6 +19,8 @@ namespace {
         RectangleTreeModel ();
         ~RectangleTreeModel ();
 
+        void collage (ipa::Rectangle::Ptr root);
+
     private:
         // Implementation of Gtk::TreeModel
         virtual Gtk::TreeModelFlags get_flags_vfunc () const;
@@ -84,6 +86,27 @@ RectangleTreeModel::RectangleTreeModel () :
 
 RectangleTreeModel::~RectangleTreeModel ()
 {
+}
+
+void RectangleTreeModel::collage (ipa::Rectangle::Ptr root)
+{
+    if (collage_root) {
+        iterator iter;
+
+        g_assert (rect_to_iter (collage_root, iter));
+        row_deleted (get_path_vfunc (iter));
+
+        collage_root.reset ();
+    }
+
+    g_assert (root);
+    collage_root = std::move (root);
+
+    iterator iter;
+    g_assert (rect_to_iter (collage_root, iter));
+
+    Path path = get_path_vfunc (iter);
+    row_inserted (path, iter);
 }
 
 Gtk::TreeModelFlags RectangleTreeModel::get_flags_vfunc () const
@@ -231,3 +254,9 @@ CollageTreeView::CollageTreeView () :
 }
 
 CollageTreeView::~CollageTreeView () {}
+
+void CollageTreeView::collage (ipa::Rectangle::Ptr collage)
+{
+    LOG(info) << "Updating collage";
+    _priv->model->collage (std::move (collage));
+}

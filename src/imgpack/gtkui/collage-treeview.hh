@@ -4,6 +4,8 @@
 #include <memory>
 #include <gtkmm.h>
 
+#include <imgpack/algorithm/rectangles.hh>
+
 namespace ImgPack
 {
     namespace GtkUI
@@ -15,6 +17,8 @@ namespace ImgPack
         public:
             CollageTreeView ();
             virtual ~CollageTreeView ();
+
+            void collage (Algorithm::Rectangle::Ptr rect);
 
         private:
             class Private;

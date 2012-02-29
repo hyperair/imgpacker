@@ -297,6 +297,10 @@ ipg::MainWindow::Private::Private (Application &app, MainWindow &self) :
 
     main_vbox.show_all ();
 
+    // Connect collage viewer and layout editor
+    viewer.connect_signal_update (sigc::mem_fun (layout_editor,
+                                                 &CollageTreeView::collage));
+
     // Only show statusbar when operation is active
     statusbar ().hide ();
 }

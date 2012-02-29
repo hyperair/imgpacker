@@ -138,6 +138,8 @@ void ipg::CollageViewer::Private::on_binpack_finish ()
 
     parent.set_size_request (collage->width () + 1, collage->height () + 1);
     parent.queue_draw ();
+
+    signal_update (collage);
 }
 
 
