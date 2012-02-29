@@ -186,10 +186,7 @@ bool RectangleTreeModel::iter_next_vfunc (const iterator &iter,
 bool RectangleTreeModel::iter_children_vfunc (const iterator &iter,
                                               iterator &iter_child) const
 {
-    const ipa::Rectangle::Ptr rect = iter_to_rect (iter);
-    const ipa::Rectangle::Ptr child = rect->child1 ();
-
-    return rect_to_iter (child, iter_child);
+    return iter_nth_child_vfunc (iter, 0, iter_child);
 }
 
 bool RectangleTreeModel::iter_parent_vfunc  (const iterator &iter,
