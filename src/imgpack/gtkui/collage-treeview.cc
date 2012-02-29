@@ -268,6 +268,7 @@ void RectangleTreeModel::get_value_vfunc (const iterator &iter, int col,
     const ipa::Rectangle::Ptr rect = iter_to_rect (iter);
 
     Glib::Value<Glib::ustring> str_value;
+    str_value.init (Glib::Value<Glib::ustring>::value_type ());
     str_value.set (rect->description ());
 
     value.init (Glib::Value<Glib::ustring>::value_type ());
