@@ -25,6 +25,8 @@ namespace {
         // Implementation of Gtk::TreeModel
         virtual Gtk::TreeModelFlags get_flags_vfunc () const;
 
+        virtual bool get_iter_vfunc (const Path &, iterator &) const;
+
         virtual int get_n_columns_vfunc () const;
 
         virtual GType get_column_type_vfunc (int index) const;
@@ -112,6 +114,38 @@ void RectangleTreeModel::collage (ipa::Rectangle::Ptr root)
 Gtk::TreeModelFlags RectangleTreeModel::get_flags_vfunc () const
 {
     return Gtk::TREE_MODEL_ITERS_PERSIST;
+}
+
+bool RectangleTreeModel::get_iter_vfunc (const Path &path, iterator &iter) const
+
+{
+    ipa::Rectangle::Ptr rect;
+
+    for (int i : path) {
+        if (!rect)
+            if (collage_root) {
+                g_assert (i == 0);
+                rect = collage_root;
+
+            } else
+                return false;
+
+        else
+            switch (i) {
+            case 0:
+                rect = rect->child1 ();
+                break;
+
+            case 1:
+                rect = rect->child2 ();
+                break;
+
+            default:
+                return false;
+            }
+    }
+
+    return rect_to_iter (rect, iter);
 }
 
 int RectangleTreeModel::get_n_columns_vfunc () const
