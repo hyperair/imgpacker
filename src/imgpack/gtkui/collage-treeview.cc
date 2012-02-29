@@ -64,6 +64,8 @@ namespace {
         ipa::Rectangle *rect =
             static_cast<ipa::Rectangle *> (iter_gobj->user_data);
 
+        g_assert (rect);
+
         return rect->shared_from_this ();
     }
 
@@ -236,6 +238,8 @@ RectangleTreeModel::get_path_vfunc (const iterator &iter) const
     Path path;
 
     ipa::Rectangle::Ptr rect = iter_to_rect (iter);
+    g_assert (rect);
+
     ipa::Rectangle::Ptr parent;
 
     while ((parent = rect->parent ()) && parent != collage_root) {
