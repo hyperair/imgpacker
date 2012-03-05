@@ -283,13 +283,16 @@ ipg::MainWindow::Private::Private (Application &app, MainWindow &self) :
     scrolled1->add (image_list);
     scrolled1->set_min_content_width (image_list.get_icon_width () + 30);
 
+    Gtk::ScrolledWindow *scrolled2 = new Gtk::ScrolledWindow ();
+    scrolled2->add (layout_editor);
+
     sidebar_notebook.append_page (*manage (scrolled1), _("Image List"));
-    sidebar_notebook.append_page (layout_editor, _("Layout Editor"));
+    sidebar_notebook.append_page (*manage (scrolled2), _("Layout Editor"));
     main_pane.pack1 (sidebar_notebook, Gtk::SHRINK | Gtk::FILL);
 
-    Gtk::ScrolledWindow *scrolled2 = new Gtk::ScrolledWindow ();
-    scrolled2->add (viewer);
-    main_pane.pack2 (*manage (scrolled2), Gtk::EXPAND | Gtk::FILL);
+    Gtk::ScrolledWindow *scrolled3 = new Gtk::ScrolledWindow ();
+    scrolled3->add (viewer);
+    main_pane.pack2 (*manage (scrolled3), Gtk::EXPAND | Gtk::FILL);
 
     // Prepare statusbar
     statusbar ().pack_end (progressbar (), Gtk::PACK_SHRINK);
