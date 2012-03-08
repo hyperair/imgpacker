@@ -21,6 +21,9 @@ namespace ImgPack
             void refresh ();
             void reset ();
 
+            void export_to_file (const Glib::RefPtr<Gio::File> &file,
+                                 const Gdk::PixbufFormat &format);
+
         protected:
             virtual bool on_draw (const Cairo::RefPtr<Cairo::Context> &cr);
 

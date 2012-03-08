@@ -134,6 +134,29 @@ void ipg::CollageViewer::reset ()
     _priv->pixbufs.clear ();
 }
 
+void ipg::CollageViewer::export_to_file (const Glib::RefPtr<Gio::File> &file,
+                                         const Gdk::PixbufFormat &format)
+{
+    int width = _priv->collage->width () + 1;
+    int height = _priv->collage->height () + 1;
+
+    auto surface = Cairo::ImageSurface::create (Cairo::FORMAT_RGB24,
+                                                width, height);
+    auto context = Cairo::Context::create (surface);
+
+    on_draw (context);
+
+    auto pixbuf = Gdk::Pixbuf::create (surface, 0, 0, width, height);
+
+    gchar *buffer;
+    gsize size;
+    pixbuf->save_to_buffer (buffer, size, format.get_name ());
+
+    auto stream = file->replace ();
+    gsize bytes_written;
+    stream->write_all (buffer, size, bytes_written);
+}
+
 namespace {
     struct RectangleCoord
     {
