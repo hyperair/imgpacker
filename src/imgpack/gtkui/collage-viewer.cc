@@ -37,10 +37,12 @@ namespace {
         virtual double max_width () {return _pixbuf->get_width ();}
         virtual double max_height () {return _pixbuf->get_height ();}
 
-        Glib::RefPtr<Gdk::Pixbuf> pixbuf () {return _pixbuf;}
+        Glib::RefPtr<Gdk::Pixbuf> orig_pixbuf () const {return _pixbuf;}
+        Glib::RefPtr<Gdk::Pixbuf> pixbuf () const;
 
     private:
         Glib::RefPtr<Gdk::Pixbuf> _pixbuf;
+        mutable Glib::RefPtr<Gdk::Pixbuf> scaled_pixbuf_cache;
         double _width;
         double _height;
     };
@@ -74,6 +76,22 @@ void PixbufRectangle::height (double new_height)
 
     _width = new_height * aspect_ratio ();
     _height = new_height;
+}
+
+inline Glib::RefPtr<Gdk::Pixbuf> PixbufRectangle::pixbuf () const
+{
+    int height = _height + 0.5;
+    int width = _width + 0.5;
+
+    if (!scaled_pixbuf_cache ||
+        scaled_pixbuf_cache->get_height () != height ||
+        scaled_pixbuf_cache->get_width () != width) {
+        scaled_pixbuf_cache =
+            _pixbuf->scale_simple (width, height,
+                                   Gdk::INTERP_BILINEAR);
+    }
+
+    return scaled_pixbuf_cache;
 }
 
 
@@ -190,12 +208,8 @@ bool ipg::CollageViewer::on_draw (const Cairo::RefPtr<Cairo::Context> &cr)
 
             cr->save ();
 
-            Glib::RefPtr<Gdk::Pixbuf> scaled =
-                pixbufrect->pixbuf ()->scale_simple (pixbufrect->width () + 0.5,
-                                                     pixbufrect->height ()
-                                                     + 0.5,
-                                                     Gdk::INTERP_BILINEAR);
-            Gdk::Cairo::set_source_pixbuf (cr, scaled, x, y);
+            Gdk::Cairo::set_source_pixbuf (cr, pixbufrect->pixbuf (),
+                                           x, y);
             LOG(info) << "Drawing pixbuf " << pixbufrect->width ()
                       << ", " << pixbufrect->height ()
                       << " at " << x << ", " << y;
