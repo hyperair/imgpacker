@@ -15,6 +15,7 @@ namespace {
         Gtk::TreeModelColumn<Glib::ustring>             uri;
         Gtk::TreeModelColumn<Glib::ustring>             filename;
         Gtk::TreeModelColumn<Glib::RefPtr<Gdk::Pixbuf>> thumbnail;
+        Gtk::TreeModelColumn<Glib::RefPtr<Gdk::Pixbuf>> pixbuf;
 
         IconViewColumns ()
         {
@@ -22,6 +23,7 @@ namespace {
             add (uri);
             add (filename);
             add (thumbnail);
+            add (pixbuf);
         }
     };
 
@@ -55,6 +57,7 @@ void ImageList::add_image (const Glib::RefPtr<Gio::File> &file,
     iter->set_value (cols ().file, file);
     iter->set_value (cols ().uri, Glib::ustring (file->get_uri ()));
     iter->set_value (cols ().filename, Glib::ustring (file->get_basename ()));
+    iter->set_value (cols ().pixbuf, pixbuf);
 
     Glib::RefPtr<Gdk::Pixbuf> thumbnail;
 
@@ -101,7 +104,7 @@ std::vector<Glib::RefPtr<Gdk::Pixbuf> > ImageList::pixbufs ()
     retval.reserve (model->children().size ());
 
     model->foreach_iter ([&retval] (const Gtk::TreeIter &i) -> bool {
-            retval.push_back ((*i)[cols ().thumbnail]);
+            retval.push_back ((*i)[cols ().pixbuf]);
 
             return false;
         });
