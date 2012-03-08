@@ -143,11 +143,16 @@ namespace {
     {
     public:
         enum Response {
-            ADD,
+            OK,
             CANCEL
         };
 
-        ImageChooserDialog (Gtk::Window &parent);
+        enum Role {
+            OPEN,
+            SAVE
+        };
+
+        ImageChooserDialog (Gtk::Window &parent, Role role);
     };
 }
 
@@ -194,19 +199,21 @@ void ImportErrorDialog::add_error (const Glib::RefPtr<Gio::File> &file,
     _has_errors = true;
 }
 
-ImageChooserDialog::ImageChooserDialog (Gtk::Window &parent) :
-    Gtk::FileChooserDialog (parent, _("Select image(s)"))
+ImageChooserDialog::ImageChooserDialog (Gtk::Window &parent, Role role) :
+    Gtk::FileChooserDialog (parent, _("Select image(s)"),
+                            role == OPEN ? Gtk::FILE_CHOOSER_ACTION_OPEN :
+                                           Gtk::FILE_CHOOSER_ACTION_SAVE)
 {
     add_button (Gtk::Stock::CANCEL, CANCEL);
-    add_button (Gtk::Stock::OPEN, ADD);
+    add_button (role == OPEN ? Gtk::Stock::OPEN : Gtk::Stock::SAVE, OK);
 
-    set_default_response (ADD);
+    set_default_response (OK);
     set_select_multiple (true);
     set_local_only (false);
 
     // Set up image filter
     Glib::RefPtr<Gtk::FileFilter> image_filter = Gtk::FileFilter::create ();
-    image_filter->add_pattern ("*");
+    image_filter->add_pixbuf_formats ();
     image_filter->set_name (_("All Images"));
 
     // Set up all files filter
@@ -244,6 +251,7 @@ struct ipg::MainWindow::Private : sigc::trackable
     PixbufLoader::Ptr             pixbuf_loader;
 
     void                          on_add_clicked ();
+    void                          on_export ();
     void                          on_exec ();
     void                          on_new_window ();
 
@@ -314,6 +322,8 @@ void ipg::MainWindow::Private::init_uimgr ()
         "            <menuitem action=\"AddAction\" />"
         "            <menuitem action=\"RemoveAction\" />"
         "            <separator />"
+        "            <menuitem action=\"ExportAction\" />"
+        "            <separator />"
         "            <menuitem action=\"ExecAction\" />"
         "            <separator />"
         "            <menuitem action=\"CloseAction\" />"
@@ -346,6 +356,7 @@ void ipg::MainWindow::Private::init_uimgr ()
     actions->add (Action::create ("NewAction", Gtk::Stock::NEW,
                                   _("New Collage")),
                   sigc::mem_fun (*this, &Private::on_new_window));
+
     actions->add (Action::create ("AddAction", Gtk::Stock::ADD,
                                   _("Add images")),
                   Gtk::AccelKey ("<Alt>A"),
@@ -355,6 +366,9 @@ void ipg::MainWindow::Private::init_uimgr ()
                                   _("Remove images")),
                   sigc::mem_fun (image_list,
                                  &ImageList::remove_selected));
+
+    actions->add (Action::create ("ExportAction", Gtk::Stock::SAVE),
+                  sigc::mem_fun (*this, &Private::on_export));
 
     actions->add (Action::create ("ExecAction", Gtk::Stock::EXECUTE),
                   sigc::mem_fun (*this, &Private::on_exec));
@@ -371,16 +385,44 @@ void ipg::MainWindow::Private::init_uimgr ()
 // callbacks
 void ipg::MainWindow::Private::on_add_clicked ()
 {
-    ImageChooserDialog dialog (self);
+    ImageChooserDialog dialog (self, ImageChooserDialog::OPEN);
 
     prepare_pixbuf_loader ();
 
     // Show dialog and process response
-    if (dialog.run () == ImageChooserDialog::ADD)
+    if (dialog.run () == ImageChooserDialog::OK)
         for (Glib::RefPtr<Gio::File> file : dialog.get_files ())
             pixbuf_loader->enqueue (file);
 
     pixbuf_loader->start ();
+}
+
+void ipg::MainWindow::Private::on_export ()
+{
+    ImageChooserDialog dialog (self, ImageChooserDialog::SAVE);
+
+    if (dialog.run () == ImageChooserDialog::OK) {
+        Glib::RefPtr<Gio::File> file = dialog.get_file ();
+
+        std::string filename = file->get_basename ();
+        size_t offset = filename.find_last_of ('.');
+
+        if (offset == std::string::npos || offset == filename.length () - 1)
+            return;             // TODO: Alert user and try again
+
+        std::string extension = filename.substr (++offset);
+
+        auto formats = Gdk::Pixbuf::get_formats ();
+
+        for (const auto &i : formats) {
+            if (i.get_name () == extension) {
+                viewer.export_to_file (file, i);
+                return;
+            }
+        }
+
+        // TODO: Alert user and try again.
+    }
 }
 
 void ipg::MainWindow::Private::on_exec ()
