@@ -1,6 +1,7 @@
 #ifndef IMGPACK_IMAGE_LIST_HH
 #define IMGPACK_IMAGE_LIST_HH
 
+#include <vector>
 #include <gtkmm.h>
 
 namespace ImgPack
@@ -19,7 +20,7 @@ namespace ImgPack
 
             void remove_selected ();
 
-            std::list<Glib::RefPtr<Gdk::Pixbuf> > pixbufs ();
+            std::vector<Glib::RefPtr<Gdk::Pixbuf> > pixbufs ();
 
         private:
             Glib::RefPtr<Gtk::ListStore> model;

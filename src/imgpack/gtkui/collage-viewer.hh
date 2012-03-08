@@ -11,7 +11,7 @@ namespace ImgPack
         class CollageViewer : public Gtk::DrawingArea
         {
         public:
-            typedef std::list<Glib::RefPtr<Gdk::Pixbuf> > PixbufList;
+            typedef std::vector<Glib::RefPtr<Gdk::Pixbuf> > PixbufList;
 
             CollageViewer ();
             ~CollageViewer ();

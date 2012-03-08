@@ -94,9 +94,11 @@ void ImageList::remove_selected ()
         model->erase (i);
 }
 
-std::list<Glib::RefPtr<Gdk::Pixbuf> > ImageList::pixbufs ()
+std::vector<Glib::RefPtr<Gdk::Pixbuf> > ImageList::pixbufs ()
 {
-    std::list<Glib::RefPtr<Gdk::Pixbuf> > retval;
+    std::vector<Glib::RefPtr<Gdk::Pixbuf> > retval;
+
+    retval.reserve (model->children().size ());
 
     model->foreach_iter ([&retval] (const Gtk::TreeIter &i) -> bool {
             retval.push_back ((*i)[cols ().thumbnail]);
