@@ -86,9 +86,26 @@ inline Glib::RefPtr<Gdk::Pixbuf> PixbufRectangle::pixbuf () const
     if (!scaled_pixbuf_cache ||
         scaled_pixbuf_cache->get_height () != height ||
         scaled_pixbuf_cache->get_width () != width) {
+        // HACK: Work around bug in gdk-pixbuf hanging when scaling large image
+        // down.
+
+        Glib::RefPtr<Gdk::Pixbuf> intermediate_pixbuf = _pixbuf;
+        double intermediate_width = _pixbuf->get_width ();
+        double intermediate_height = _pixbuf->get_height ();
+
+        while (intermediate_width / width > 10) {
+            intermediate_width /= 10;
+            intermediate_height /= 10;
+
+            intermediate_pixbuf =
+                intermediate_pixbuf->scale_simple (intermediate_width,
+                                                   intermediate_height,
+                                                   Gdk::INTERP_BILINEAR);
+        }
+
         scaled_pixbuf_cache =
-            _pixbuf->scale_simple (width, height,
-                                   Gdk::INTERP_BILINEAR);
+            intermediate_pixbuf->scale_simple (width, height,
+                                               Gdk::INTERP_BILINEAR);
     }
 
     return scaled_pixbuf_cache;
