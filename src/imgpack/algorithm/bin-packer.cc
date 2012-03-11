@@ -105,21 +105,30 @@ void BinPackerImpl::source_rectangles (RectangleList rectangles)
 
 void BinPackerImpl::run ()
 {
-    // Hack: Loop until only one rectangle is left
-    // This can be replaced with rectangles.size () > 1 with a new gcc
-    while (++rectangles.begin () != rectangles.end ()) {
-        testcancelled ();
+    do {
+        std::list<ipa::Rectangle::Ptr> accumulator;
 
-        using ipa::Rectangle;
-        Rectangle::Ptr rect1 = rectangles.front ();
-        rectangles.pop_front ();
+        while (!rectangles.empty ()) {
+            testcancelled ();
 
-        Rectangle::Ptr rect2 = rectangles.front ();
-        rectangles.pop_front ();
+            using ipa::Rectangle;
 
-        Rectangle::Ptr result_rect = combine (rect1, rect2, aspect_ratio);
-        rectangles.push_back (result_rect);
-    }
+            Rectangle::Ptr rect1 = rectangles.front ();
+            rectangles.pop_front ();
+
+            if (rectangles.empty ()) {
+                accumulator.push_back (rect1);
+                break;
+            }
+
+            Rectangle::Ptr rect2 = rectangles.front ();
+            rectangles.pop_front ();
+
+            accumulator.push_back (combine (rect1, rect2, aspect_ratio));
+        }
+
+        rectangles = std::move (accumulator);
+    } while (rectangles.size () > 1);
 }
 
 ipa::Rectangle::Ptr BinPackerImpl::result ()
