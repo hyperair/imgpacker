@@ -278,7 +278,7 @@ ipg::MainWindow::Private::Private (Application &app, MainWindow &self) :
     // Prepare main pane
     Gtk::ScrolledWindow *scrolled1 = new Gtk::ScrolledWindow ();
     scrolled1->add (image_list);
-    scrolled1->set_min_content_width (image_list.get_icon_width () + 20);
+    scrolled1->set_min_content_width (image_list.get_icon_width () + 30);
 
     main_pane.pack1 (*manage (scrolled1), Gtk::SHRINK | Gtk::FILL);
 

@@ -47,7 +47,7 @@ ImageList::ImageList () :
     set_selection_mode (Gtk::SELECTION_MULTIPLE);
 
     set_reorderable (true);
-    set_item_width (250);
+    set_item_width (150);
 }
 
 void ImageList::add_image (const Glib::RefPtr<Gio::File> &file,
