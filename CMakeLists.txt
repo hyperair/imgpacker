@@ -41,3 +41,7 @@ add_executable(imgpacker
 target_link_libraries(imgpacker ${GTKMM_LDFLAGS} -lasprintf)
 
 install(TARGETS imgpacker RUNTIME DESTINATION bin)
+
+add_custom_target(run
+  COMMAND ${CMAKE_BINARY_DIR}/imgpacker
+  DEPENDS imgpacker)
