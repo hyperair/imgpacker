@@ -4,7 +4,10 @@
 #include <imgpack/util/logger.hh>
 #include <imgpack/gtkui/gtk-application.hh>
 #include <imgpack/gtkui/main-window.hh>
+
+#ifdef HAVE_CONFIG_H
 #include <config.h>
+#endif
 
 namespace ip = ImgPack;
 namespace ipg = ImgPack::GtkUI;
