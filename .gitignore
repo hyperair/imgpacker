@@ -17,3 +17,7 @@ stamp-h1
 /po/stamp-it
 /doc/
 !/doc/Doxyfile
+CMakeFiles
+cmake_install.cmake
+CMakeCache.txt
+install_manifest.txt
