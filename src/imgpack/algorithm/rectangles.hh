@@ -38,6 +38,9 @@ namespace ImgPack
             virtual void child1 (Ptr child);
             virtual void child2 (Ptr child);
 
+            virtual Ptr find_rect (double, double)
+            {return shared_from_this ();}
+
             std::shared_ptr<CompositeRectangle> parent () const;
             void parent (CompositeRectangle *new_parent);
 
@@ -95,6 +98,8 @@ namespace ImgPack
             virtual double max_height ();
             virtual double max_width ();
 
+            virtual Rectangle::Ptr find_rect (double x, double y);
+
             virtual Orientation orientation () {return HORIZONTAL;}
 
         private:
@@ -117,6 +122,8 @@ namespace ImgPack
 
             virtual double max_height ();
             virtual double max_width ();
+
+            virtual Rectangle::Ptr find_rect (double x, double y);
 
             virtual Orientation orientation () {return VERTICAL;}
 

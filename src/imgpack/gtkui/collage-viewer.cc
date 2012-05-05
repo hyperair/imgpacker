@@ -120,6 +120,7 @@ struct ipg::CollageViewer::Private : public sigc::trackable
     ipa::BinPacker::Ptr  packer;
     PixbufList           pixbufs;
     ipa::Rectangle::Ptr  collage;
+    ipa::Rectangle::Ptr  selected;
 
     void on_binpack_finish ();
 };
@@ -137,7 +138,10 @@ void ipg::CollageViewer::Private::on_binpack_finish ()
 
 
 ipg::CollageViewer::CollageViewer () :
-    _priv (new Private (*this)) {}
+    _priv (new Private (*this))
+{
+    add_events (Gdk::BUTTON_PRESS_MASK);
+}
 
 ipg::CollageViewer::~CollageViewer () {} // Needed for unique_ptr deleter
 
@@ -211,6 +215,11 @@ bool ipg::CollageViewer::on_draw (const Cairo::RefPtr<Cairo::Context> &cr)
     std::queue<RectangleCoord> drawq;
     drawq.push ({_priv->collage, 0, 0});
 
+    double selected_x = -1;
+    double selected_y = -1;
+    double selected_width = -1;
+    double selected_height = -1;
+
     while (!drawq.empty ()) {
         RectangleCoord rect = drawq.front ();
         drawq.pop ();
@@ -223,7 +232,6 @@ bool ipg::CollageViewer::on_draw (const Cairo::RefPtr<Cairo::Context> &cr)
                 std::static_pointer_cast<PixbufRectangle> (rect.rect);
 
             cr->save ();
-
             Gdk::Cairo::set_source_pixbuf (cr, pixbufrect->pixbuf (),
                                            x, y);
             LOG(info) << "Drawing pixbuf " << pixbufrect->width ()
@@ -231,8 +239,14 @@ bool ipg::CollageViewer::on_draw (const Cairo::RefPtr<Cairo::Context> &cr)
                       << " at " << x << ", " << y;
 
             cr->paint ();
-
             cr->restore ();
+
+            if (rect.rect == _priv->selected) {
+                selected_x = x;
+                selected_y = y;
+                selected_width = pixbufrect->width ();
+                selected_height = pixbufrect->height ();
+            }
 
         } else {
             std::vector<ipa::Rectangle::Ptr> children =
@@ -262,6 +276,29 @@ bool ipg::CollageViewer::on_draw (const Cairo::RefPtr<Cairo::Context> &cr)
             }
         }
     }
+
+    LOG(info) << "Stroking selected rectangle: "
+              << selected_x << ", " << selected_y << "; "
+              << selected_width << "x" << selected_height;
+    cr->save ();
+    cr->rectangle (selected_x, selected_y, selected_width, selected_height);
+    cr->set_source_rgb (0, 1, 1);
+    cr->set_line_width (4);
+    cr->stroke ();
+    cr->restore ();
+
+
+    return true;
+}
+
+bool ipg::CollageViewer::on_button_press_event (GdkEventButton *ev)
+{
+    if (!_priv->collage)
+        return true;
+
+    _priv->selected = _priv->collage->find_rect (ev->x, ev->y);
+    LOG(info) << "Click at " << ev->x << ", " << ev->y;
+    queue_draw ();
 
     return true;
 }

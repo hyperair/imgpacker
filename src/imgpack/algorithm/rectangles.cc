@@ -165,6 +165,15 @@ void HCompositeRectangle::recalculate_size_impl ()
     child2 ()->height (common_height);
 }
 
+Rectangle::Ptr
+HCompositeRectangle::find_rect (const double x, const double y)
+{
+    if (x < child1 ()->width ())
+        return child1 ()->find_rect (x, y);
+
+    return child2 ()->find_rect (x - child1 ()->width (), y);
+}
+
 
 // VCompositeRectangle definitions
 VCompositeRectangle::VCompositeRectangle (ipa::Rectangle::Ptr rect1,
@@ -212,4 +221,13 @@ void VCompositeRectangle::recalculate_size_impl ()
 
     child1 ()->width (common_width);
     child2 ()->width (common_width);
+}
+
+Rectangle::Ptr
+VCompositeRectangle::find_rect (const double x, const double y)
+{
+    if (y < child1 ()->height ())
+        return child1 ()->find_rect (x, y);
+
+    return child2 ()->find_rect (x, y - child1 ()->height ());
 }
