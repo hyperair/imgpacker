@@ -30,6 +30,9 @@ namespace ImgPack
             virtual double max_width () = 0;
             virtual double max_height () = 0;
 
+            virtual double offset_x ();
+            virtual double offset_y ();
+
             // overridden if Rectangle has children
             virtual Orientation orientation () {return NONE;}
             virtual Ptr child1 () {return Ptr ();}

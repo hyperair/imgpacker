@@ -37,6 +37,40 @@ void Rectangle::child2 (Ptr)
     g_assert_not_reached ();
 }
 
+double Rectangle::offset_x ()
+{
+    if (!_parent)
+        return 0;
+
+    double parent_x = _parent->offset_x ();
+
+    if (_parent->orientation () == VERTICAL)
+        return parent_x;
+
+    auto child1 = _parent->child1 ();
+    if (child1.get () == this)
+        return parent_x;
+
+    return child1->width () + parent_x;
+}
+
+double Rectangle::offset_y ()
+{
+    if (!_parent)
+        return 0;
+
+    double parent_y = _parent->offset_y ();
+
+    if (_parent->orientation () == HORIZONTAL)
+        return parent_y;
+
+    auto child1 = _parent->child1 ();
+    if (child1.get () == this)
+        return parent_y;
+
+    return child1->height () + parent_y;
+}
+
 
 CompositeRectangle::CompositeRectangle (Rectangle::Ptr rect1,
                                         Rectangle::Ptr rect2) :
