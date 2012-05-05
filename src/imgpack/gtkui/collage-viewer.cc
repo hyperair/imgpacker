@@ -205,6 +205,63 @@ namespace {
         RectangleCoord (ipa::Rectangle::Ptr rect, double x, double y) :
             rect (rect), x (x), y (y) {}
     };
+
+    void draw_rect (const Cairo::RefPtr<Cairo::Context> &cr,
+                    RectangleCoord rect)
+    {
+        std::queue<RectangleCoord> drawq;
+        drawq.push (rect);
+
+        while (!drawq.empty ()) {
+            RectangleCoord rect = drawq.front ();
+            drawq.pop ();
+
+            double x = rect.x;
+            double y = rect.y;
+
+            if (rect.rect->orientation () == ipa::Rectangle::NONE) { // leaf
+                PixbufRectangle::Ptr pixbufrect =
+                    std::static_pointer_cast<PixbufRectangle> (rect.rect);
+
+                cr->save ();
+                Gdk::Cairo::set_source_pixbuf (cr, pixbufrect->pixbuf (),
+                                               x, y);
+                LOG(info) << "Drawing pixbuf " << pixbufrect->width ()
+                          << ", " << pixbufrect->height ()
+                          << " at " << x << ", " << y;
+
+                cr->paint ();
+                cr->restore ();
+
+            } else {
+                std::vector<ipa::Rectangle::Ptr> children =
+                    {rect.rect->child1 (), rect.rect->child2 ()};
+
+                for (auto i : children) {
+                    if (!i)
+                        continue;
+
+                    drawq.push ({i, x, y});
+
+                    switch (rect.rect->orientation ()) {
+                    case ipa::Rectangle::HORIZONTAL:
+                        x += i->width ();
+                        break;
+
+                    case ipa::Rectangle::VERTICAL:
+                        y += i->height ();
+                        break;
+
+                    case ipa::Rectangle::NONE:
+                        break;
+
+                    default:
+                        g_assert_not_reached ();
+                    }
+                }
+            }
+        }
+    }
 }
 
 bool ipg::CollageViewer::on_draw (const Cairo::RefPtr<Cairo::Context> &cr)
@@ -212,81 +269,31 @@ bool ipg::CollageViewer::on_draw (const Cairo::RefPtr<Cairo::Context> &cr)
     if (!_priv->collage)
         return true;
 
-    std::queue<RectangleCoord> drawq;
-    drawq.push ({_priv->collage, 0, 0});
 
-    double selected_x = -1;
-    double selected_y = -1;
-    double selected_width = -1;
-    double selected_height = -1;
+    draw_rect (cr, {_priv->collage, 0, 0});
 
-    while (!drawq.empty ()) {
-        RectangleCoord rect = drawq.front ();
-        drawq.pop ();
+    if (!_priv->selected)
+        return true;
 
-        double x = rect.x;
-        double y = rect.y;
-
-        if (rect.rect->orientation () == ipa::Rectangle::NONE) { // leaf
-            PixbufRectangle::Ptr pixbufrect =
-                std::static_pointer_cast<PixbufRectangle> (rect.rect);
-
-            cr->save ();
-            Gdk::Cairo::set_source_pixbuf (cr, pixbufrect->pixbuf (),
-                                           x, y);
-            LOG(info) << "Drawing pixbuf " << pixbufrect->width ()
-                      << ", " << pixbufrect->height ()
-                      << " at " << x << ", " << y;
-
-            cr->paint ();
-            cr->restore ();
-
-            if (rect.rect == _priv->selected) {
-                selected_x = x;
-                selected_y = y;
-                selected_width = pixbufrect->width ();
-                selected_height = pixbufrect->height ();
-            }
-
-        } else {
-            std::vector<ipa::Rectangle::Ptr> children =
-                {rect.rect->child1 (), rect.rect->child2 ()};
-
-            for (auto i : children) {
-                if (!i)
-                    continue;
-
-                drawq.push ({i, x, y});
-
-                switch (rect.rect->orientation ()) {
-                case ipa::Rectangle::HORIZONTAL:
-                    x += i->width ();
-                    break;
-
-                case ipa::Rectangle::VERTICAL:
-                    y += i->height ();
-                    break;
-
-                case ipa::Rectangle::NONE:
-                    break;
-
-                default:
-                    g_assert_not_reached ();
-                }
-            }
-        }
-    }
-
-    LOG(info) << "Stroking selected rectangle: "
-              << selected_x << ", " << selected_y << "; "
-              << selected_width << "x" << selected_height;
+    RectangleCoord selected = {_priv->selected, _priv->selected->offset_x (),
+                               _priv->selected->offset_y ()};
     cr->save ();
-    cr->rectangle (selected_x, selected_y, selected_width, selected_height);
-    cr->set_source_rgb (0, 1, 1);
-    cr->set_line_width (4);
-    cr->stroke ();
+    Glib::RefPtr<Gtk::StyleContext> context = get_style_context ();
+    context->context_save ();
+    context->add_class (GTK_STYLE_CLASS_VIEW);
+    Gtk::StateFlags state = context->get_state ();
+    state |= Gtk::STATE_FLAG_SELECTED;
+    context->set_state (state);
+    context->render_background (cr, selected.x - 4, selected.y - 4,
+                                selected.rect->width () + 8,
+                                selected.rect->height () + 8);
+    context->render_frame (cr, selected.x - 4, selected.y - 4,
+                           selected.rect->width () + 8,
+                           selected.rect->height () + 8);
+    context->context_restore ();
     cr->restore ();
 
+    draw_rect (cr, selected);
 
     return true;
 }
