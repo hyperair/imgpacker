@@ -12,7 +12,8 @@ namespace ImgPack
     {
         class CompositeRectangle;
 
-        class Rectangle
+        class Rectangle :
+            public std::enable_shared_from_this<Rectangle>
         {
         public:
             typedef std::shared_ptr<Rectangle> Ptr;
@@ -51,8 +52,7 @@ namespace ImgPack
 
 
         class CompositeRectangle :
-            public Rectangle,
-            public std::enable_shared_from_this<CompositeRectangle>
+            public Rectangle
         {
         public:
             typedef std::shared_ptr<CompositeRectangle> Ptr;
@@ -69,6 +69,10 @@ namespace ImgPack
             void orphan_child (Rectangle &child);
 
             void recalculate_size ();
+
+            std::shared_ptr<const CompositeRectangle> shared_from_this () const;
+            Ptr shared_from_this ();
+
         protected:
             virtual void recalculate_size_impl () = 0;
             std::pair<Rectangle::Ptr, Rectangle::Ptr> _children;

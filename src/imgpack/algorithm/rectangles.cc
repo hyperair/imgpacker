@@ -101,6 +101,19 @@ void CompositeRectangle::recalculate_size ()
         recalculate_size_impl ();
 }
 
+std::shared_ptr<const CompositeRectangle>
+CompositeRectangle::shared_from_this () const
+{
+    return std::static_pointer_cast<const CompositeRectangle>
+        (Rectangle::shared_from_this ());
+}
+
+CompositeRectangle::Ptr CompositeRectangle::shared_from_this ()
+{
+    return std::static_pointer_cast<CompositeRectangle>
+        (Rectangle::shared_from_this ());
+}
+
 
 
 // HCompositeRectangle definitions
