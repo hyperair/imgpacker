@@ -1,4 +1,5 @@
 #include <queue>
+#include <cmath>
 
 #include <nihpp/sharedptrcreator.hh>
 #include <imgpack/gtkui/collage-viewer.hh>
@@ -114,13 +115,16 @@ inline Glib::RefPtr<Gdk::Pixbuf> PixbufRectangle::pixbuf () const
 
 struct ipg::CollageViewer::Private : public sigc::trackable
 {
-    Private (ipg::CollageViewer &parent) : parent (parent) {}
+    Private (ipg::CollageViewer &parent) :
+        parent (parent), zoom_factor (1.0) {}
 
     CollageViewer       &parent;
     ipa::BinPacker::Ptr  packer;
     PixbufList           pixbufs;
     ipa::Rectangle::Ptr  collage;
     ipa::Rectangle::Ptr  selected;
+
+    double               zoom_factor;
 
     void on_binpack_finish ();
 };
@@ -140,7 +144,9 @@ void ipg::CollageViewer::Private::on_binpack_finish ()
 ipg::CollageViewer::CollageViewer () :
     _priv (new Private (*this))
 {
-    add_events (Gdk::BUTTON_RELEASE_MASK | Gdk::BUTTON_PRESS_MASK);
+    add_events (Gdk::BUTTON_RELEASE_MASK |
+                Gdk::BUTTON_PRESS_MASK |
+                Gdk::SMOOTH_SCROLL_MASK);
 }
 
 ipg::CollageViewer::~CollageViewer () {} // Needed for unique_ptr deleter
@@ -269,6 +275,7 @@ bool ipg::CollageViewer::on_draw (const Cairo::RefPtr<Cairo::Context> &cr)
     if (!_priv->collage)
         return true;
 
+    cr->scale (_priv->zoom_factor, _priv->zoom_factor);
 
     draw_rect (cr, {_priv->collage, 0, 0});
 
@@ -278,9 +285,11 @@ bool ipg::CollageViewer::on_draw (const Cairo::RefPtr<Cairo::Context> &cr)
     // Begin drawing selection background + frame
     RectangleCoord selected = {_priv->selected, _priv->selected->offset_x (),
                                _priv->selected->offset_y ()};
-    cr->save ();
+
     Glib::RefPtr<Gtk::StyleContext> context = get_style_context ();
     context->context_save ();
+    cr->save ();
+
     context->add_class (GTK_STYLE_CLASS_VIEW);
     Gtk::StateFlags state = context->get_state ();
     state |= Gtk::STATE_FLAG_SELECTED;
@@ -291,7 +300,6 @@ bool ipg::CollageViewer::on_draw (const Cairo::RefPtr<Cairo::Context> &cr)
     context->render_frame (cr, selected.x - 4, selected.y - 4,
                            selected.rect->width () + 8,
                            selected.rect->height () + 8);
-    context->context_restore ();
     cr->restore ();
 
     // Draw selection on top of background
@@ -305,6 +313,7 @@ bool ipg::CollageViewer::on_draw (const Cairo::RefPtr<Cairo::Context> &cr)
                                 0, 0,
                                 selected.rect->width (),
                                 selected.rect->height ());
+    context->context_restore ();
     cr->save ();
     cr->set_source (bg_surface, selected.x, selected.y);
     cr->paint_with_alpha (0.2);
@@ -318,7 +327,9 @@ bool ipg::CollageViewer::on_button_release_event (GdkEventButton *ev)
     if (!_priv->collage)
         return true;
 
-    auto selection_leaf  = _priv->collage->find_rect (ev->x, ev->y);
+    auto selection_leaf  =
+        _priv->collage->find_rect (ev->x / _priv->zoom_factor,
+                                   ev->y / _priv->zoom_factor);
     bool found = false;
 
     for (auto i = selection_leaf; i; i = i->parent ())
@@ -332,6 +343,23 @@ bool ipg::CollageViewer::on_button_release_event (GdkEventButton *ev)
         _priv->selected = selection_leaf;
 
     LOG(info) << "Click at " << ev->x << ", " << ev->y;
+    queue_draw ();
+
+    return true;
+}
+
+bool ipg::CollageViewer::on_scroll_event (GdkEventScroll *ev)
+{
+    g_assert (ev->direction == GDK_SCROLL_SMOOTH);
+
+    if (!(ev->state & GDK_CONTROL_MASK &&
+          !(ev->state & GDK_SHIFT_MASK) && !(ev->state & GDK_META_MASK)))
+        return false;
+
+    _priv->zoom_factor *= std::pow (1.2, -ev->delta_y);
+    set_size_request (_priv->collage->width () * _priv->zoom_factor + 1,
+                      _priv->collage->height () * _priv->zoom_factor + 1);
+
     queue_draw ();
 
     return true;
