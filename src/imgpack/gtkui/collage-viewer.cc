@@ -303,7 +303,19 @@ bool ipg::CollageViewer::on_button_press_event (GdkEventButton *ev)
     if (!_priv->collage)
         return true;
 
-    _priv->selected = _priv->collage->find_rect (ev->x, ev->y);
+    auto selection_leaf  = _priv->collage->find_rect (ev->x, ev->y);
+    bool found = false;
+
+    for (auto i = selection_leaf; i; i = i->parent ())
+        if (i == _priv->selected) {
+            _priv->selected = i->parent ();
+            found = true;
+            break;
+        }
+
+    if (!found)
+        _priv->selected = selection_leaf;
+
     LOG(info) << "Click at " << ev->x << ", " << ev->y;
     queue_draw ();
 
