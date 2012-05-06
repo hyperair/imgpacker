@@ -414,26 +414,118 @@ bool ipg::CollageViewer::on_drag_drop (
     double real_y = y / _priv->zoom_factor;
 
     auto target = _priv->collage->find_rect (real_x, real_y);
+
     if (!target || !_priv->selected)
         return false;
 
+    for (auto i = target; i; i = i->parent ())
+        if (i == _priv->selected)
+            return false;
+
+    // detect closest edge in target rect
+    // NB: this needs to be done before altering the tree
+    double left_dist = real_x - target->offset_x ();
+    double right_dist = target->offset_x () + target->width () - real_x;
+    double top_dist = real_y - target->offset_y ();
+    double bottom_dist = target->offset_y () + target->height () - real_y;
+
+    g_assert (left_dist * right_dist * top_dist * bottom_dist >= 0);
+
     // We only accept dnd from the same widget, so just move the selected widget
     // to the target directly
-    auto target_parent = target->parent ();
-    auto selected_parent = _priv->selected->parent ();
+    {
+        // First remove selected from its original location
+        auto parent = _priv->selected->parent ();
+        if (!parent)
+            return false;
 
-    if (target_parent->child1 () == target)
-        target_parent->child1 (selected_parent);
-    else
-        target_parent->child2 (selected_parent);
+        auto grandparent = parent->parent ();
+        auto sibling = parent->child1 () == _priv->selected ?
+            parent->child2 () : parent->child1 ();
 
-    // HACK: Look for now empty child.
-    if (!selected_parent->child1 ())
-        selected_parent->child1 (target);
-    else
-        selected_parent->child2 (target);
+        g_assert (sibling->parent () == parent && sibling != _priv->selected);
+        g_assert ((parent->child1 () == sibling &&
+                   parent->child2 () == _priv->selected) ||
+                  (parent->child2 () == sibling &&
+                   parent->child1 () == _priv->selected));
+
+        // Unparent the current selection, as we're dropping that node
+        _priv->selected->parent (nullptr);
+
+        if (!grandparent) {
+            _priv->collage = sibling;
+            sibling->parent (nullptr);
+        }
+
+        else if (grandparent->child1 () == parent)
+            grandparent->child1 (sibling);
+
+        else
+            grandparent->child2 (sibling);
+
+        g_assert (sibling->parent () == grandparent);
+        g_assert (!_priv->selected->parent ());
+    }
+
+    {
+        // Now make selected and target siblings
+        auto parent = target->parent ();
+        g_assert (!parent ||
+                  parent->child1 () == target ||
+                  parent->child2 () == target);
+
+        int position = !parent ? 0 : (parent->child1 () == target ? 1 : 2);
+
+        target->parent (nullptr);
+
+        double min_dist = std::min (std::min (left_dist, right_dist),
+                                    std::min (top_dist, bottom_dist));
+
+        ipa::CompositeRectangle::Ptr new_parent;
+        if (min_dist == left_dist)
+            new_parent = ipa::HCompositeRectangle::create (_priv->selected,
+                                                           target);
+
+        else if (min_dist == right_dist)
+            new_parent = ipa::HCompositeRectangle::create (target,
+                                                           _priv->selected);
+
+        else if (min_dist == top_dist)
+            new_parent = ipa::VCompositeRectangle::create (_priv->selected,
+                                                           target);
+
+        else
+            new_parent = ipa::VCompositeRectangle::create (target,
+                                                           _priv->selected);
+
+        g_assert (target->parent () == new_parent);
+        g_assert (_priv->selected->parent () == new_parent);
+
+        if (!parent) {
+            _priv->collage = new_parent;
+            new_parent->parent (nullptr);
+
+        } else if (position == 1)
+            parent->child1 (new_parent);
+
+        else
+            parent->child2 (new_parent);
+
+        g_assert (new_parent->parent () == parent);
+        g_assert (!parent ||
+                  (position == 1 && parent->child1 () == new_parent) ||
+                  (position == 2 && parent->child2 () == new_parent));
+
+        ipa::CompositeRectangle::Ptr root;
+        for (auto i = parent; i; i = i->parent ())
+            root = i;
+
+        g_assert (root == _priv->collage);
+        root->recalculate_size ();
+    }
 
     ctx->drag_finish (true, true, time);
+    set_size_request (_priv->collage->width (), _priv->collage->height ());
     queue_draw ();
 
     return true;
