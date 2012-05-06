@@ -28,6 +28,13 @@ namespace ImgPack
             virtual bool on_draw (const Cairo::RefPtr<Cairo::Context> &cr);
             virtual bool on_button_release_event (GdkEventButton *ev);
             virtual bool on_scroll_event (GdkEventScroll *ev);
+            virtual void
+            on_drag_begin (const Glib::RefPtr<Gdk::DragContext> &ctx);
+
+            virtual bool
+            on_drag_drop (const Glib::RefPtr<Gdk::DragContext> &,
+                          int x, int y, guint time);
+
 
         private:
             class Private;

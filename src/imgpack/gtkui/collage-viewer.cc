@@ -342,7 +342,21 @@ bool ipg::CollageViewer::on_button_release_event (GdkEventButton *ev)
     if (!found)
         _priv->selected = selection_leaf;
 
-    LOG(info) << "Click at " << ev->x << ", " << ev->y;
+    if (_priv->selected) {
+        std::vector<Gtk::TargetEntry> targets =
+            {
+                Gtk::TargetEntry ("application/x-imgpacker-rect",
+                                  Gtk::TARGET_SAME_WIDGET)
+            };
+
+        drag_source_set (targets, Gdk::BUTTON1_MASK, Gdk::ACTION_MOVE);
+        drag_dest_set (targets, Gtk::DEST_DEFAULT_ALL, Gdk::ACTION_MOVE);
+
+    } else {
+        drag_source_unset ();
+        drag_dest_unset ();
+    }
+
     queue_draw ();
 
     return true;
@@ -360,6 +374,59 @@ bool ipg::CollageViewer::on_scroll_event (GdkEventScroll *ev)
     set_size_request (_priv->collage->width () * _priv->zoom_factor + 1,
                       _priv->collage->height () * _priv->zoom_factor + 1);
 
+    queue_draw ();
+
+    return true;
+}
+
+void ipg::CollageViewer::on_drag_begin (const Glib::RefPtr<Gdk::DragContext> &)
+{
+    g_assert (_priv->selected);
+
+    double width = _priv->selected->width ();
+    double height = _priv->selected->height ();
+
+    auto icon_surface = Cairo::ImageSurface::create (Cairo::FORMAT_ARGB32,
+                                                     width,
+                                                     height);
+    auto cr = Cairo::Context::create (icon_surface);
+    double factor = std::min (width / 120, height / 120);
+    cr->scale (factor, factor);
+    draw_rect (cr, {_priv->selected, 0, 0});
+
+    auto icon_pixbuf = Gdk::Pixbuf::create (icon_surface, 0, 0, width, height);
+    drag_source_set_icon (icon_pixbuf);
+}
+
+bool ipg::CollageViewer::on_drag_drop (
+    const Glib::RefPtr<Gdk::DragContext> &ctx,
+    int x, int y,
+    guint time)
+{
+    double real_x = x / _priv->zoom_factor;
+    double real_y = y / _priv->zoom_factor;
+
+    auto target = _priv->collage->find_rect (real_x, real_y);
+    if (!target || !_priv->selected)
+        return false;
+
+    // We only accept dnd from the same widget, so just move the selected widget
+    // to the target directly
+    auto target_parent = target->parent ();
+    auto selected_parent = _priv->selected->parent ();
+
+    if (target_parent->child1 () == target)
+        target_parent->child1 (selected_parent);
+    else
+        target_parent->child2 (selected_parent);
+
+    // HACK: Look for now empty child.
+    if (!selected_parent->child1 ())
+        selected_parent->child1 (target);
+    else
+        selected_parent->child2 (target);
+
+    ctx->drag_finish (true, true, time);
     queue_draw ();
 
     return true;
