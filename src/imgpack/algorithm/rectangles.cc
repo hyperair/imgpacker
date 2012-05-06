@@ -190,6 +190,9 @@ void HCompositeRectangle::height (double new_height)
 
     child1 ()->height (new_height);
     child2 ()->height (new_height);
+
+    g_assert (std::abs (new_height - child1 ()->height ()) < 0.001 &&
+              std::abs (new_height - child2 ()->height ()) < 0.001);
 }
 
 void HCompositeRectangle::width (double new_width)
@@ -217,6 +220,9 @@ void HCompositeRectangle::recalculate_size_impl ()
 
     child1 ()->height (common_height);
     child2 ()->height (common_height);
+
+    g_assert (std::abs (common_height - child1 ()->height ()) < 0.001 &&
+              std::abs (common_height - child2 ()->height ()) < 0.001);
 }
 
 Rectangle::Ptr
@@ -248,6 +254,9 @@ void VCompositeRectangle::width (double new_width)
               << width () << " -> " << new_width;
     child1 ()->width (new_width);
     child2 ()->width (new_width);
+
+    g_assert (std::abs (new_width - child1 ()->width ()) < 0.001 &&
+              std::abs (new_width - child2 ()->width ()) < 0.001);
 }
 
 void VCompositeRectangle::height (double new_height)
@@ -275,6 +284,9 @@ void VCompositeRectangle::recalculate_size_impl ()
 
     child1 ()->width (common_width);
     child2 ()->width (common_width);
+
+    g_assert (std::abs (common_width - child1 ()->width ()) < 0.001 &&
+              std::abs (common_width - child2 ()->width ()) < 0.001);
 }
 
 Rectangle::Ptr
