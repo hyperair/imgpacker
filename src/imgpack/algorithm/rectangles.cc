@@ -148,11 +148,10 @@ void CompositeRectangle::orphan_child (Rectangle &child)
 
 void CompositeRectangle::recalculate_size ()
 {
+    recalculate_size_impl ();
+
     if (parent ())
         parent ()->recalculate_size ();
-
-    else
-        recalculate_size_impl ();
 }
 
 std::shared_ptr<const CompositeRectangle>
