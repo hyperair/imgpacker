@@ -21,8 +21,15 @@ void Rectangle::parent (CompositeRectangle *new_parent)
     if (_parent == new_parent)
         return;
 
-    if (_parent)
-        _parent->orphan_child (*this);
+    // Move _parent away in case of recursion
+    CompositeRectangle* tmp = _parent;
+    _parent = nullptr;
+
+    if (tmp)
+        tmp->orphan_child (*this);
+
+    g_assert (!tmp || (tmp->child1 ().get () != this &&
+                       tmp->child2 ().get () != this));
 
     _parent = new_parent;
 }
@@ -108,8 +115,12 @@ namespace {
 
         Rectangle::Ptr old_child = std::move (dest);
 
-        old_child->parent (nullptr);
-        child->parent (&parent);
+        if (old_child)
+            old_child->parent (nullptr);
+
+        if (child)
+            child->parent (&parent);
+
         dest = std::move (child);
     }
 }
@@ -128,11 +139,11 @@ void CompositeRectangle::child2 (Rectangle::Ptr child)
 
 void CompositeRectangle::orphan_child (Rectangle &child)
 {
-    if (child1 ().get () == &child)
-        child1 (Rectangle::Ptr ());
+    if (_children.first.get () == &child)
+        _children.first.reset ();
 
     else if (child2 ().get () == &child)
-        child2 (Rectangle::Ptr ());
+        _children.second.reset ();
 }
 
 void CompositeRectangle::recalculate_size ()
