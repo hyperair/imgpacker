@@ -332,7 +332,7 @@ bool ipg::CollageViewer::on_button_release_event (GdkEventButton *ev)
     if (_priv->dragging)
         return true;
 
-    auto selection_leaf  =
+    auto selection_leaf =
         _priv->collage->find_rect (ev->x / _priv->zoom_factor,
                                    ev->y / _priv->zoom_factor);
     bool found = false;
