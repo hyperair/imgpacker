@@ -133,6 +133,7 @@ struct ipg::CollageViewer::Private : public sigc::trackable
 void ipg::CollageViewer::Private::on_binpack_finish ()
 {
     collage = packer->result ();
+    selected.reset ();
 
     if (!collage)
         return;
