@@ -275,6 +275,7 @@ bool ipg::CollageViewer::on_draw (const Cairo::RefPtr<Cairo::Context> &cr)
     if (!_priv->selected)
         return true;
 
+    // Begin drawing selection background + frame
     RectangleCoord selected = {_priv->selected, _priv->selected->offset_x (),
                                _priv->selected->offset_y ()};
     cr->save ();
@@ -293,7 +294,21 @@ bool ipg::CollageViewer::on_draw (const Cairo::RefPtr<Cairo::Context> &cr)
     context->context_restore ();
     cr->restore ();
 
+    // Draw selection on top of background
     draw_rect (cr, selected);
+
+    // Lightly draw background over selection again for better visibility
+    auto bg_surface = Cairo::ImageSurface::create (Cairo::FORMAT_ARGB32,
+                                                   selected.rect->width (),
+                                                   selected.rect->height ());
+    context->render_background (Cairo::Context::create (bg_surface),
+                                0, 0,
+                                selected.rect->width (),
+                                selected.rect->height ());
+    cr->save ();
+    cr->set_source (bg_surface, selected.x, selected.y);
+    cr->paint_with_alpha (0.2);
+    cr->restore ();
 
     return true;
 }
