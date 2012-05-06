@@ -41,8 +41,7 @@ namespace ImgPack
             virtual void child1 (Ptr child);
             virtual void child2 (Ptr child);
 
-            virtual Ptr find_rect (double, double)
-            {return shared_from_this ();}
+            virtual Ptr find_rect (double, double);
 
             std::shared_ptr<CompositeRectangle> parent () const;
             void parent (CompositeRectangle *new_parent);

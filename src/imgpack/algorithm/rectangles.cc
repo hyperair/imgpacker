@@ -71,6 +71,15 @@ double Rectangle::offset_y ()
     return child1->height () + parent_y;
 }
 
+Rectangle::Ptr Rectangle::find_rect (double x, double y)
+{
+    if (x <= width () && y <= height ())
+        return shared_from_this ();
+
+    else
+        return Rectangle::Ptr ();
+}
+
 
 CompositeRectangle::CompositeRectangle (Rectangle::Ptr rect1,
                                         Rectangle::Ptr rect2) :
