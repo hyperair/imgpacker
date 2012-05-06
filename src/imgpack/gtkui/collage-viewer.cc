@@ -140,7 +140,7 @@ void ipg::CollageViewer::Private::on_binpack_finish ()
 ipg::CollageViewer::CollageViewer () :
     _priv (new Private (*this))
 {
-    add_events (Gdk::BUTTON_PRESS_MASK);
+    add_events (Gdk::BUTTON_RELEASE_MASK | Gdk::BUTTON_PRESS_MASK);
 }
 
 ipg::CollageViewer::~CollageViewer () {} // Needed for unique_ptr deleter
@@ -313,7 +313,7 @@ bool ipg::CollageViewer::on_draw (const Cairo::RefPtr<Cairo::Context> &cr)
     return true;
 }
 
-bool ipg::CollageViewer::on_button_press_event (GdkEventButton *ev)
+bool ipg::CollageViewer::on_button_release_event (GdkEventButton *ev)
 {
     if (!_priv->collage)
         return true;

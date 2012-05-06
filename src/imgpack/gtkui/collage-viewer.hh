@@ -26,7 +26,7 @@ namespace ImgPack
 
         protected:
             virtual bool on_draw (const Cairo::RefPtr<Cairo::Context> &cr);
-            virtual bool on_button_press_event (GdkEventButton *ev);
+            virtual bool on_button_release_event (GdkEventButton *ev);
 
         private:
             class Private;
