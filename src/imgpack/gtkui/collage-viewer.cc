@@ -116,7 +116,7 @@ inline Glib::RefPtr<Gdk::Pixbuf> PixbufRectangle::pixbuf () const
 struct ipg::CollageViewer::Private : public sigc::trackable
 {
     Private (ipg::CollageViewer &parent) :
-        parent (parent), zoom_factor (1.0) {}
+        parent (parent), zoom_factor (1.0), dragging (false) {}
 
     CollageViewer       &parent;
     ipa::BinPacker::Ptr  packer;
@@ -125,6 +125,7 @@ struct ipg::CollageViewer::Private : public sigc::trackable
     ipa::Rectangle::Ptr  selected;
 
     double               zoom_factor;
+    bool                 dragging;
 
     void on_binpack_finish ();
 };
@@ -327,6 +328,9 @@ bool ipg::CollageViewer::on_button_release_event (GdkEventButton *ev)
     if (!_priv->collage)
         return true;
 
+    if (_priv->dragging)
+        return true;
+
     auto selection_leaf  =
         _priv->collage->find_rect (ev->x / _priv->zoom_factor,
                                    ev->y / _priv->zoom_factor);
@@ -381,6 +385,7 @@ bool ipg::CollageViewer::on_scroll_event (GdkEventScroll *ev)
 
 void ipg::CollageViewer::on_drag_begin (const Glib::RefPtr<Gdk::DragContext> &)
 {
+    _priv->dragging = true;
     g_assert (_priv->selected);
 
     double width = _priv->selected->width ();
@@ -403,6 +408,7 @@ bool ipg::CollageViewer::on_drag_drop (
     int x, int y,
     guint time)
 {
+    _priv->dragging = false;
     double real_x = x / _priv->zoom_factor;
     double real_y = y / _priv->zoom_factor;
 
