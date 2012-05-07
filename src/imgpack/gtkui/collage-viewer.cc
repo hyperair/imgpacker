@@ -367,14 +367,16 @@ bool ipg::CollageViewer::on_button_press_event (GdkEventButton *ev)
     if (ev->type != GDK_BUTTON_PRESS)
         return true;
 
+    double real_x = ev->x * _priv->zoom_factor;
+    double real_y = ev->y * _priv->zoom_factor;
+
+    LOG(info) << "Button press at " << real_x << ", " << real_y;
+
     if (!_priv->collage)
         return true;
 
     g_assert (!_priv->dragging);
     g_assert (!_priv->click_handled);
-
-    double real_x = ev->x * _priv->zoom_factor;
-    double real_y = ev->y * _priv->zoom_factor;
 
     // Set new selection during button_press stage if outside of current
     // selection. This is to support dragging an item that is not currently
@@ -392,6 +394,11 @@ bool ipg::CollageViewer::on_button_press_event (GdkEventButton *ev)
 
 bool ipg::CollageViewer::on_button_release_event (GdkEventButton *ev)
 {
+    double real_x = ev->x * _priv->zoom_factor;
+    double real_y = ev->y * _priv->zoom_factor;
+
+    LOG(info) << "Button release at " << real_x << ", " << real_y;
+
     if (!_priv->collage || _priv->dragging)
         return true;
 
@@ -400,9 +407,6 @@ bool ipg::CollageViewer::on_button_release_event (GdkEventButton *ev)
         _priv->click_handled = false;
         return true;
     }
-
-    double real_x = ev->x * _priv->zoom_factor;
-    double real_y = ev->y * _priv->zoom_factor;
 
     // Only handle cycling of rectangles up the tree here
     if (rect_contains (_priv->selected, real_x, real_y))
