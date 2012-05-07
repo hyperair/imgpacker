@@ -364,6 +364,9 @@ namespace {
 
 bool ipg::CollageViewer::on_button_press_event (GdkEventButton *ev)
 {
+    if (ev->type != GDK_BUTTON_PRESS)
+        return true;
+
     if (!_priv->collage)
         return true;
 
