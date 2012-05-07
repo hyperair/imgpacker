@@ -117,7 +117,8 @@ struct ipg::CollageViewer::Private : public sigc::trackable
 {
     Private (ipg::CollageViewer &parent) :
         parent (parent), zoom_factor (1.0),
-        dragging (false), click_handled (false) {}
+        dragging (false), click_handled (false),
+        pointer_x (0.0), pointer_y (0.0) {}
 
     CollageViewer       &parent;
     ipa::BinPacker::Ptr  packer;
@@ -129,8 +130,23 @@ struct ipg::CollageViewer::Private : public sigc::trackable
     bool                 dragging;
     bool                 click_handled;
 
+    double               pointer_x;
+    double               pointer_y;
+
     void on_binpack_finish ();
     void update_drag_status ();
+
+    enum Side {
+        TOP,
+        BOTTOM,
+        LEFT,
+        RIGHT,
+        INVALID
+    };
+
+    void update_pointer_location (double x, double y);
+    ipa::Rectangle::Ptr get_dnd_target ();
+    Side get_dnd_target_side ();
 };
 
 void ipg::CollageViewer::Private::on_binpack_finish ()
@@ -162,6 +178,59 @@ void ipg::CollageViewer::Private::update_drag_status ()
         parent.drag_source_unset ();
         parent.drag_dest_unset ();
     }
+}
+
+void ipg::CollageViewer::Private::update_pointer_location (double x, double y)
+{
+    pointer_x = x;
+    pointer_y = y;
+}
+
+ipa::Rectangle::Ptr ipg::CollageViewer::Private::get_dnd_target ()
+{
+    if (collage)
+        return collage->find_rect (pointer_x / zoom_factor,
+                                   pointer_y / zoom_factor);
+
+    else
+        return ipa::Rectangle::Ptr ();
+}
+
+ipg::CollageViewer::Private::Side
+ipg::CollageViewer::Private::get_dnd_target_side ()
+{
+    auto target = get_dnd_target ();
+
+    if (!target)
+        return INVALID;
+
+    double real_x = pointer_x / zoom_factor;
+    double real_y = pointer_y / zoom_factor;
+
+    double left_dist = real_x - target->offset_x ();
+    double right_dist = target->offset_x () + target->width () - real_x;
+    double top_dist = real_y - target->offset_y ();
+    double bottom_dist = target->offset_y () + target->height () - real_y;
+
+    g_assert (left_dist * right_dist * top_dist * bottom_dist > 0);
+
+    double min_dist = std::min (std::min (left_dist, right_dist),
+                                std::min (top_dist, bottom_dist));
+
+    if (left_dist == min_dist)
+        return LEFT;
+
+    else if (right_dist == min_dist)
+        return RIGHT;
+
+    else if (top_dist == min_dist)
+        return TOP;
+
+    else if (bottom_dist == min_dist)
+        return BOTTOM;
+
+    else
+        g_assert_not_reached ();
 }
 
 
@@ -468,10 +537,8 @@ bool ipg::CollageViewer::on_drag_drop (
     int x, int y,
     guint time)
 {
-    double real_x = x / _priv->zoom_factor;
-    double real_y = y / _priv->zoom_factor;
-
-    auto target = _priv->collage->find_rect (real_x, real_y);
+    _priv->update_pointer_location (x, y);
+    auto target = _priv->get_dnd_target ();
 
     if (!target || !_priv->selected)
         return false;
@@ -480,14 +547,7 @@ bool ipg::CollageViewer::on_drag_drop (
         if (i == _priv->selected)
             return false;
 
-    // detect closest edge in target rect
-    // NB: this needs to be done before altering the tree
-    double left_dist = real_x - target->offset_x ();
-    double right_dist = target->offset_x () + target->width () - real_x;
-    double top_dist = real_y - target->offset_y ();
-    double bottom_dist = target->offset_y () + target->height () - real_y;
-
-    g_assert (left_dist * right_dist * top_dist * bottom_dist >= 0);
+    Private::Side target_side = _priv->get_dnd_target_side ();
 
     // We only accept dnd from the same widget, so just move the selected widget
     // to the target directly
@@ -536,25 +596,32 @@ bool ipg::CollageViewer::on_drag_drop (
 
         target->parent (nullptr);
 
-        double min_dist = std::min (std::min (left_dist, right_dist),
-                                    std::min (top_dist, bottom_dist));
-
         ipa::CompositeRectangle::Ptr new_parent;
-        if (min_dist == left_dist)
+
+        switch (target_side) {
+        case Private::LEFT:
             new_parent = ipa::HCompositeRectangle::create (_priv->selected,
                                                            target);
+            break;
 
-        else if (min_dist == right_dist)
+        case Private::RIGHT:
             new_parent = ipa::HCompositeRectangle::create (target,
                                                            _priv->selected);
+            break;
 
-        else if (min_dist == top_dist)
+        case Private::TOP:
             new_parent = ipa::VCompositeRectangle::create (_priv->selected,
                                                            target);
+            break;
 
-        else
+        case Private::BOTTOM:
             new_parent = ipa::VCompositeRectangle::create (target,
                                                            _priv->selected);
+            break;
+
+        default:
+            g_assert_not_reached ();
+        }
 
         g_assert (target->parent () == new_parent);
         g_assert (_priv->selected->parent () == new_parent);
