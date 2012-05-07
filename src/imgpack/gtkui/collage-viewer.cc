@@ -405,12 +405,16 @@ void ipg::CollageViewer::on_drag_begin (const Glib::RefPtr<Gdk::DragContext> &)
     drag_source_set_icon (icon_pixbuf);
 }
 
+void ipg::CollageViewer::on_drag_end (const Glib::RefPtr<Gdk::DragContext>&)
+{
+    _priv->dragging = false;
+}
+
 bool ipg::CollageViewer::on_drag_drop (
     const Glib::RefPtr<Gdk::DragContext> &ctx,
     int x, int y,
     guint time)
 {
-    _priv->dragging = false;
     double real_x = x / _priv->zoom_factor;
     double real_y = y / _priv->zoom_factor;
 
