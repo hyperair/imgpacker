@@ -126,8 +126,10 @@ struct ipg::CollageViewer::Private : public sigc::trackable
 
     double               zoom_factor;
     bool                 dragging;
+    bool                 click_handled;
 
     void on_binpack_finish ();
+    void update_drag_status ();
 };
 
 void ipg::CollageViewer::Private::on_binpack_finish ()
@@ -141,6 +143,24 @@ void ipg::CollageViewer::Private::on_binpack_finish ()
     parent.set_size_request (collage->width () * zoom_factor,
                              collage->height () * zoom_factor);
     parent.queue_draw ();
+}
+
+void ipg::CollageViewer::Private::update_drag_status ()
+{
+    if (selected) {
+        std::vector<Gtk::TargetEntry> targets =
+            {
+                Gtk::TargetEntry ("application/x-imgpacker-rect",
+                                  Gtk::TARGET_SAME_WIDGET)
+            };
+
+        parent.drag_source_set (targets, Gdk::BUTTON1_MASK, Gdk::ACTION_MOVE);
+        parent.drag_dest_set (targets, Gtk::DEST_DEFAULT_ALL, Gdk::ACTION_MOVE);
+
+    } else {
+        parent.drag_source_unset ();
+        parent.drag_dest_unset ();
+    }
 }
 
 
@@ -325,45 +345,69 @@ bool ipg::CollageViewer::on_draw (const Cairo::RefPtr<Cairo::Context> &cr)
     return true;
 }
 
-bool ipg::CollageViewer::on_button_release_event (GdkEventButton *ev)
+namespace {
+    bool rect_contains (const ipa::Rectangle::Ptr &rect,
+                        double x, double y)
+    {
+        if (!rect)
+            return false;
+
+        double top = rect->offset_y ();
+        double left = rect->offset_x ();
+        double bottom = top + rect->height ();
+        double right = left + rect->width ();
+
+        return top <= y && y <= bottom && left <= x && x <= right;
+    }
+}
+
+bool ipg::CollageViewer::on_button_press_event (GdkEventButton *ev)
 {
     if (!_priv->collage)
         return true;
 
-    if (_priv->dragging)
-        return true;
+    g_assert (!_priv->dragging);
+    g_assert (!_priv->click_handled);
 
-    auto selection_leaf =
-        _priv->collage->find_rect (ev->x / _priv->zoom_factor,
-                                   ev->y / _priv->zoom_factor);
-    bool found = false;
+    double real_x = ev->x * _priv->zoom_factor;
+    double real_y = ev->y * _priv->zoom_factor;
 
-    for (auto i = selection_leaf; i; i = i->parent ())
-        if (i == _priv->selected) {
-            _priv->selected = i->parent ();
-            found = true;
-            break;
-        }
+    // Set new selection during button_press stage if outside of current
+    // selection. This is to support dragging an item that is not currently
+    // selected.
+    if (!rect_contains (_priv->selected, real_x, real_y)) {
+        _priv->selected = _priv->collage->find_rect (real_x, real_y);
+        _priv->click_handled = true;
 
-    if (!found)
-        _priv->selected = selection_leaf;
-
-    if (_priv->selected) {
-        std::vector<Gtk::TargetEntry> targets =
-            {
-                Gtk::TargetEntry ("application/x-imgpacker-rect",
-                                  Gtk::TARGET_SAME_WIDGET)
-            };
-
-        drag_source_set (targets, Gdk::BUTTON1_MASK, Gdk::ACTION_MOVE);
-        drag_dest_set (targets, Gtk::DEST_DEFAULT_ALL, Gdk::ACTION_MOVE);
-
-    } else {
-        drag_source_unset ();
-        drag_dest_unset ();
+        _priv->update_drag_status ();
+        queue_draw ();
     }
 
+    return true;
+}
+
+bool ipg::CollageViewer::on_button_release_event (GdkEventButton *ev)
+{
+    if (!_priv->collage || _priv->dragging)
+        return true;
+
+    // Click handled by button_press, so ignore to avoid duplicate actions
+    if (_priv->click_handled) {
+        _priv->click_handled = false;
+        return true;
+    }
+
+    double real_x = ev->x * _priv->zoom_factor;
+    double real_y = ev->y * _priv->zoom_factor;
+
+    // Only handle cycling of rectangles up the tree here
+    if (rect_contains (_priv->selected, real_x, real_y))
+        _priv->selected = _priv->selected->parent ();
+
+    _priv->update_drag_status ();
     queue_draw ();
+
+    _priv->click_handled = false;
 
     return true;
 }
@@ -408,6 +452,7 @@ void ipg::CollageViewer::on_drag_begin (const Glib::RefPtr<Gdk::DragContext> &)
 void ipg::CollageViewer::on_drag_end (const Glib::RefPtr<Gdk::DragContext>&)
 {
     _priv->dragging = false;
+    _priv->click_handled = false;
 }
 
 bool ipg::CollageViewer::on_drag_drop (
