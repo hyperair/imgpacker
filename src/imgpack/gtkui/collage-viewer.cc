@@ -116,7 +116,8 @@ inline Glib::RefPtr<Gdk::Pixbuf> PixbufRectangle::pixbuf () const
 struct ipg::CollageViewer::Private : public sigc::trackable
 {
     Private (ipg::CollageViewer &parent) :
-        parent (parent), zoom_factor (1.0), dragging (false) {}
+        parent (parent), zoom_factor (1.0),
+        dragging (false), click_handled (false) {}
 
     CollageViewer       &parent;
     ipa::BinPacker::Ptr  packer;
