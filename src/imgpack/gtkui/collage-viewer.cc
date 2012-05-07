@@ -367,8 +367,8 @@ bool ipg::CollageViewer::on_button_press_event (GdkEventButton *ev)
     if (ev->type != GDK_BUTTON_PRESS)
         return true;
 
-    double real_x = ev->x * _priv->zoom_factor;
-    double real_y = ev->y * _priv->zoom_factor;
+    double real_x = ev->x / _priv->zoom_factor;
+    double real_y = ev->y / _priv->zoom_factor;
 
     LOG(info) << "Button press at " << real_x << ", " << real_y;
 
@@ -394,8 +394,8 @@ bool ipg::CollageViewer::on_button_press_event (GdkEventButton *ev)
 
 bool ipg::CollageViewer::on_button_release_event (GdkEventButton *ev)
 {
-    double real_x = ev->x * _priv->zoom_factor;
-    double real_y = ev->y * _priv->zoom_factor;
+    double real_x = ev->x / _priv->zoom_factor;
+    double real_y = ev->y / _priv->zoom_factor;
 
     LOG(info) << "Button release at " << real_x << ", " << real_y;
 
