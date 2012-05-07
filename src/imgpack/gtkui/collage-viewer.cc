@@ -138,7 +138,8 @@ void ipg::CollageViewer::Private::on_binpack_finish ()
     if (!collage)
         return;
 
-    parent.set_size_request (collage->width () + 1, collage->height () + 1);
+    parent.set_size_request (collage->width () * zoom_factor,
+                             collage->height () * zoom_factor);
     parent.queue_draw ();
 }
 
@@ -525,7 +526,8 @@ bool ipg::CollageViewer::on_drag_drop (
     }
 
     ctx->drag_finish (true, true, time);
-    set_size_request (_priv->collage->width (), _priv->collage->height ());
+    set_size_request (_priv->collage->width () * _priv->zoom_factor,
+                      _priv->collage->height () * _priv->zoom_factor);
     queue_draw ();
 
     return true;
