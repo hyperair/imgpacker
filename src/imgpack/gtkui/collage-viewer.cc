@@ -406,11 +406,47 @@ bool ipg::CollageViewer::on_draw (const Cairo::RefPtr<Cairo::Context> &cr)
                                 0, 0,
                                 selected.rect->width (),
                                 selected.rect->height ());
-    context->context_restore ();
     cr->save ();
     cr->set_source (bg_surface, selected.x, selected.y);
     cr->paint_with_alpha (0.2);
     cr->restore ();
+
+    if (!_priv->dragging)
+        return true;
+
+    auto target = _priv->get_dnd_target ();
+    auto side = _priv->get_dnd_target_side ();
+
+    if (!target)
+        return true;
+
+    double hilight_width =
+        target->width () * ((side == Private::TOP ||
+                             side == Private::BOTTOM) ? 1 : 0.25);
+    double hilight_height =
+        target->height () * ((side == Private::LEFT ||
+                              side == Private::RIGHT) ? 1 : 0.25);
+
+    double hilight_x =
+        target->offset_x () +
+        target->width () * (side == Private::RIGHT ? 0.75 : 0);
+    double hilight_y =
+        target->offset_y () +
+        target->height () * (side == Private::BOTTOM ? 0.75 : 0);
+
+    auto target_hilight_surface =
+        Cairo::ImageSurface::create (Cairo::FORMAT_ARGB32,
+                                     hilight_width,
+                                     hilight_height);
+    context->render_background (Cairo::Context::create (target_hilight_surface),
+                                0, 0,
+                                hilight_width, hilight_height);
+    cr->save ();
+    cr->set_source (target_hilight_surface, hilight_x, hilight_y);
+    cr->paint_with_alpha (0.6);
+    cr->restore ();
+
+    context->context_restore ();
 
     return true;
 }
@@ -524,6 +560,15 @@ void ipg::CollageViewer::on_drag_begin (const Glib::RefPtr<Gdk::DragContext> &)
 
     auto icon_pixbuf = Gdk::Pixbuf::create (icon_surface, 0, 0, width, height);
     drag_source_set_icon (icon_pixbuf);
+}
+
+bool ipg::CollageViewer::on_drag_motion (const Glib::RefPtr<Gdk::DragContext> &,
+                                         int x, int y, guint)
+{
+    _priv->update_pointer_location (x, y);
+    queue_draw ();
+
+    return bool (_priv->get_dnd_target ());
 }
 
 void ipg::CollageViewer::on_drag_end (const Glib::RefPtr<Gdk::DragContext>&)
