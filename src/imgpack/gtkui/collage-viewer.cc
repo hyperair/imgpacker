@@ -687,7 +687,7 @@ bool ipg::CollageViewer::on_drag_drop (
                   (position == 2 && parent->child2 () == new_parent));
 
         ipa::CompositeRectangle::Ptr root;
-        for (auto i = parent; i; i = i->parent ())
+        for (auto i = new_parent; i; i = i->parent ())
             root = i;
 
         g_assert (root == _priv->collage);
