@@ -212,7 +212,7 @@ ipg::CollageViewer::Private::get_dnd_target_side ()
     double top_dist = real_y - target->offset_y ();
     double bottom_dist = target->offset_y () + target->height () - real_y;
 
-    g_assert (left_dist * right_dist * top_dist * bottom_dist > 0);
+    g_assert (left_dist * right_dist * top_dist * bottom_dist >= 0);
 
     double min_dist = std::min (std::min (left_dist, right_dist),
                                 std::min (top_dist, bottom_dist));
